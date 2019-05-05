@@ -2,20 +2,8 @@ from datetime import datetime
 
 import pytest
 
-from experimentstore import (
-    BaseStore,
-    Experiment,
-    JSONStore,
-    _format_datetime,
-    _parse_datetime,
-)
+from experimentstore import BaseStore, Experiment, JSONStore
 from experimentstore.__main__ import _format_experiments_as_html
-
-
-def validate_datetime_str(dt_str: str):
-    assert isinstance(dt_str, str)
-    dt = _parse_datetime(dt_str)
-    assert isinstance(dt, datetime)
 
 
 class TestExperiment:
@@ -32,12 +20,12 @@ class TestExperiment:
                 experiment._start_datetime_key,
             )
         )
-        validate_datetime_str(experiment[experiment._start_datetime_key])
+        assert isinstance(experiment[experiment._start_datetime_key], datetime)
 
     def test_end(self):
         experiment = Experiment()
         experiment.end()
-        validate_datetime_str(experiment[experiment._end_datetime_key])
+        assert isinstance(experiment[experiment._end_datetime_key], datetime)
         assert experiment._git_key in experiment
         for git_info_key in ("repo_name", "branch", "commit"):
             git_value = experiment[experiment._git_key][git_info_key]
@@ -46,7 +34,7 @@ class TestExperiment:
 
     def test_pass_experiment_data(self):
         experiment_data = {
-            Experiment._start_datetime_key: _format_datetime(datetime.now()),
+            Experiment._start_datetime_key: datetime.now(),
             Experiment._description_key: "",
             Experiment._metrics_key: {"some_metric": 2},
             Experiment._parameters_key: {"some_parameter": True},

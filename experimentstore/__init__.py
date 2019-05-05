@@ -5,6 +5,7 @@ import os
 import subprocess
 import textwrap
 from datetime import datetime
+from json import JSONEncoder
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
 
@@ -49,11 +50,11 @@ class Experiment(dict):
         return {"identifier": [], "binary": [], "categorical": [], "numerical": []}
 
     def _start(self) -> None:
-        self[self._start_datetime_key] = _format_datetime(datetime.now())
+        self[self._start_datetime_key] = datetime.now()
         self._add_git_info()
 
     def end(self) -> None:
-        self[self._end_datetime_key] = _format_datetime(datetime.now())
+        self[self._end_datetime_key] = datetime.now()
 
     def _add_git_info(self) -> None:
         if self._is_in_git_repo():
@@ -94,7 +95,7 @@ class Experiment(dict):
 
     @property
     def identifier(self) -> str:
-        return self[self._start_datetime_key]
+        return _format_datetime(self[self._start_datetime_key])
 
     @property
     def description(self) -> str:
@@ -208,13 +209,13 @@ class JSONStore(BaseStore):
     @staticmethod
     def _json_load(path: Path) -> dict:
         with path.open("r") as f:
-            content = json.load(f)
+            content = json.load(f, object_hook=_deserialize_datetime)
         return content
 
     @staticmethod
     def _json_dump(dict_obj: dict, path: Path) -> None:
         with path.open("w") as f:
-            json.dump(dict_obj, f)
+            json.dump(dict_obj, f, cls=DatetimeJSONEncoder)
 
 
 class SQLiteStore(BaseStore):
@@ -222,6 +223,34 @@ class SQLiteStore(BaseStore):
         self.path = _prepare_path(path)
 
         self.load()
+
+
+class DatetimeJSONEncoder(JSONEncoder):
+    """Encodes datetime objects as a dictionary
+    with key "_isoformat" and the isoformat representation
+    of the datetime as value.
+
+    Idea for this encoder class comes from
+    https://stackoverflow.com/a/52838324
+    """
+
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return {"_isoformat": _format_datetime(obj)}
+        return super().default(obj)
+
+
+def _deserialize_datetime(obj):
+    """Reverts the encoding done by the custom
+    DatetimeJSONEncoder class
+
+    Idea for this function comes from
+    https://stackoverflow.com/a/52838324
+    """
+    _isoformat = obj.get("_isoformat")
+    if _isoformat is not None:
+        return _parse_datetime(_isoformat)
+    return obj
 
 
 def _format_datetime(dt: datetime) -> str:
