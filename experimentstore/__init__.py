@@ -32,19 +32,21 @@ class Experiment(dict):
             super().__init__(experiment_data)
         else:
             self[self._description_key] = description
-            self._setup_initial_structure()
+            self._set_up_initial_structure()
             self._start()
 
-    def _setup_initial_structure(self) -> None:
+    def _set_up_initial_structure(self) -> None:
         self[self._metrics_key] = {}
         self[self._parameters_key] = {}
-        self[self._features_key] = {
-            "identifier": [],
-            "binary": [],
-            "categorical": [],
-            "numerical": [],
-        }
+        self[self._features_key] = self._initial_features_structure()
         self[self._info_key] = {}
+
+    def _initial_features_structure(self) -> dict:
+        """This method can easily be overwritten to return a different
+        initial structure of the features dictionary, e.g. if you want to always
+        include different feature categories.
+        """
+        return {"identifier": [], "binary": [], "categorical": [], "numerical": []}
 
     def _start(self) -> None:
         self[self._start_datetime_key] = _format_datetime(datetime.now())
