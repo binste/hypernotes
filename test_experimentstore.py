@@ -61,12 +61,38 @@ class TestExperiment:
 class TestBaseStore:
     def test_raise_notimplementederrors(self):
         store = BaseStore()
+        experiment = Experiment()
+
         with pytest.raises(NotImplementedError):
             store.load()
-
-        experiment = Experiment()
         with pytest.raises(NotImplementedError):
             store.add(experiment)
+
+    def test_add_to_experiments(self):
+        store = BaseStore()
+        experiment = Experiment()
+
+        store._add_to_experiments(experiment)
+        assert len(store.experiments) == 1
+        assert experiment.identifier in store.experiments
+
+    def test_to_pandas_dict(self):
+        store = BaseStore()
+        experiment_1 = Experiment()
+        recall_value = 0.2
+        experiment_1.metrics["recall"] = recall_value
+        experiment_2 = Experiment()
+        impute_missings_value = True
+        experiment_2.parameters["impute_missings"] = impute_missings_value
+
+        store._add_to_experiments(experiment_1)
+        store._add_to_experiments(experiment_2)
+        pandas_dict = store.to_pandas_dict()
+        assert pandas_dict["metrics.recall"] == [recall_value, None]
+        assert pandas_dict["parameters.impute_missings"] == [
+            None,
+            impute_missings_value,
+        ]
 
 
 class TestMain:

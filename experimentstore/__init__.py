@@ -7,7 +7,7 @@ import textwrap
 from datetime import datetime
 from json import JSONEncoder
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set, Union, Sequence, DefaultDict
 
 
 __version__ = "0.1a"
@@ -139,10 +139,13 @@ class Experiment(dict):
 
 
 class BaseStore:
-    """The base store class. This class cannot be used directly and only acts
+    """The base store class. This class cannot be used directly and mostly acts
     as a placeholder which defines the store interface. Inherit from this class if you
     want to implement your own store class.
     """
+
+    def __init__(self):
+        self.experiments = {}
 
     def load(self):
         """Should load the full store as Dict[str, Experiment]
@@ -161,11 +164,84 @@ class BaseStore:
         raises a NotImplementedError.
         """
         raise NotImplementedError("Should be implemented by BaseStore subclasses")
+        self._add_to_experiments(experiment)
+
+    def _add_to_experiments(self, experiment: Experiment) -> None:
+        experiment = self._prepare_experiment_for_storing(experiment)
+        self.experiments[experiment.identifier] = experiment
+
+    def _prepare_experiment_for_storing(self, experiment: Experiment) -> Experiment:
+        if experiment._end_datetime_key not in experiment:
+            experiment.end()
+        return copy.deepcopy(experiment)
+
+    def to_pandas_dict(self) -> dict:
+        """
+        Usage
+        -----
+        import pandas as pd
+        >>> df = pd.DataFrame(experiment.to_pandas_data())
+        """
+        flat_dicts = []
+        for identifier, experiment in self.experiments.items():
+            flat_dicts.append(self._flatten_dict(dict(experiment)))
+
+        column_dict = {}  # type: Dict[str, list]
+        all_column_names = set([col for d in flat_dicts for col, _ in d.items()])
+        for column in all_column_names:
+            column_dict[column] = []
+
+        for d in flat_dicts:
+            for column in all_column_names:
+                column_dict[column].append(d.get(column))
+
+        key_order = (
+            [
+                Experiment._start_datetime_key,
+                Experiment._end_datetime_key,
+                Experiment._description_key,
+            ]
+            + self._filter_sequence_if_startswith(
+                column_dict.keys(), startswith=Experiment._metrics_key
+            )
+            + self._filter_sequence_if_startswith(
+                column_dict.keys(), startswith=Experiment._parameters_key
+            )
+            + self._filter_sequence_if_startswith(
+                column_dict.keys(), startswith=Experiment._features_key
+            )
+            + self._filter_sequence_if_startswith(
+                column_dict.keys(), startswith=Experiment._git_key
+            )
+        )
+        key_order.extend(key for key in column_dict.keys() if key not in key_order)
+        ordered_dict = {k: column_dict[k] for k in key_order}
+        return ordered_dict
+
+    def _flatten_dict(self, d: dict, parent_key: str = "", sep: str = ".") -> dict:
+        """Flattens a dictionary by concatenating key names
+
+        Taken from https://stackoverflow.com/a/6027615
+        """
+        items = []  # type: List[tuple]
+        for k, v in d.items():
+            new_key = parent_key + sep + k if parent_key else k
+            if isinstance(v, dict):
+                items.extend(self._flatten_dict(v, new_key, sep=sep).items())
+            else:
+                items.append((new_key, v))
+        return dict(items)
+
+    def _filter_sequence_if_startswith(
+        self, seq: Sequence[str], startswith: str
+    ) -> List[str]:
+        return [x for x in seq if x.startswith(startswith)]
 
 
 class JSONStore(BaseStore):
     def __init__(self, path: Union[str, Path]) -> None:
-        self.path = _prepare_path(path)
+        super().__init__()
+        self.path = _convert_to_path(path)
 
         self.load()
 
@@ -177,18 +253,16 @@ class JSONStore(BaseStore):
             self._load_store()
 
     def add(self, experiment: Experiment) -> None:
-        experiment = _prepare_experiment_for_storing(experiment)
         # Reload json file to prevent overwritting changes
         # to the file which could have happend since the last load.
         # This of course can not prevent overwritting changes
         # which occured between this load and the writing of the file
         self.load()
         self._check_that_experiment_is_not_already_in_store(experiment)
-        self.experiments[experiment.identifier] = experiment
+        self._add_to_experiments(experiment)
         self._save_experiments()
 
     def _create_new_store(self) -> None:
-        self.experiments = {}  # type: Dict[str, Experiment]
         self._save_experiments()
 
     def _load_store(self) -> None:
@@ -220,7 +294,8 @@ class JSONStore(BaseStore):
 
 class SQLiteStore(BaseStore):
     def __init__(self, path: Union[str, Path]) -> None:
-        self.path = _prepare_path(path)
+        super().__init__()
+        self.path = _convert_to_path(path)
 
         self.load()
 
@@ -261,16 +336,10 @@ def _parse_datetime(dt_str: str) -> datetime:
     return datetime.fromisoformat(dt_str)
 
 
-def _prepare_path(path: Union[str, Path]) -> Path:
+def _convert_to_path(path: Union[str, Path]) -> Path:
     if isinstance(path, str):
         path = Path(path)
     return path
-
-
-def _prepare_experiment_for_storing(experiment: Experiment) -> Experiment:
-    if experiment._end_datetime_key not in experiment:
-        experiment.end()
-    return copy.deepcopy(experiment)
 
 
 def _raw_dicts_to_experiments(raw_dicts: Dict[str, dict]) -> Dict[str, Any]:
