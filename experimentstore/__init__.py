@@ -9,6 +9,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
 
 
+__version__ = "0.1a"
+
+
 class Experiment(dict):
     _metrics_key = "metrics"
     _parameters_key = "parameters"
