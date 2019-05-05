@@ -112,17 +112,18 @@ class HTMLResponder(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     # TODO: Add description
     parser = argparse.ArgumentParser("")
-    parser.add_argument("store_path")
+    parser.add_argument("storepath")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--json", action="store_true")
     group.add_argument("--sqlite", action="store_true")
     parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--no-browser", action="store_true")
 
     args = parser.parse_args()
     if args.json:
-        store = JSONStore(args.store_path)
+        store = JSONStore(args.storepath)
     elif args.sqlite:
-        store = SQLiteStore(args.store_path)
+        store = SQLiteStore(args.storepath)
     html = _format_experiments_for_datatable(store.experiments)
 
     try:
@@ -130,7 +131,8 @@ if __name__ == "__main__":
         server = HTTPServer((host, args.port), HTMLResponder)
         url = f"http://localhost:{args.port}"
         print(f"Started server on {url}")
-        webbrowser.open_new_tab(url)
+        if not args.no_browser:
+            webbrowser.open_new_tab(url)
         server.serve_forever()
     except KeyboardInterrupt:
         print("Shutting down...")
