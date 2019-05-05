@@ -9,6 +9,7 @@ from experimentstore import (
     _format_datetime,
     _parse_datetime,
 )
+from experimentstore.__main__ import _format_experiments_as_html
 
 
 def validate_datetime_str(dt_str: str):
@@ -78,3 +79,24 @@ class TestBaseStore:
         experiment = Experiment()
         with pytest.raises(NotImplementedError):
             store.add(experiment)
+
+
+class TestMain:
+    def test_html_format(self, tmp_path):
+        expected_test_value = "expected_test_value"
+
+        experiment = Experiment()
+        experiment.metrics["accuracy"] = 0.2
+        experiment.parameters["impute_values"] = True
+        experiment.parameters["find_this_value"] = expected_test_value
+        store_path = tmp_path / "temp_store.json"
+        store = JSONStore(store_path)
+        store.add(experiment)
+
+        html = _format_experiments_as_html(store.experiments)
+        self.validate_html(html, expected_test_value)
+
+    def validate_html(self, html: str, expected_test_value: str) -> None:
+        assert expected_test_value in html
+        assert "<!DOCTYPE html>" in html
+        assert "datatables" in html.lower()

@@ -11,7 +11,7 @@ from typing import Dict, List, Set, Union, Any
 from experimentstore import JSONStore, Experiment, SQLiteStore
 
 
-def _format_experiments_for_datatable(experiments: Dict[str, Experiment]):
+def _format_experiments_as_html(experiments: Dict[str, Experiment]):
     template_experiment = list(experiments.values())[0]
     general_columns = [
         template_experiment._start_datetime_key,
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         store = JSONStore(args.storepath)
     elif args.sqlite:
         store = SQLiteStore(args.storepath)
-    html = _format_experiments_for_datatable(store.experiments)
+    html = _format_experiments_as_html(store.experiments)
 
     try:
         host = "localhost"
