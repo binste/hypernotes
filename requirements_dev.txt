@@ -1,5 +1,1 @@
 pytest
-mypy
-black
-flake8
-rope
