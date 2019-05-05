@@ -38,6 +38,7 @@ def _format_experiments_as_html(experiments: Dict[str, Experiment]):
             value = experiment.get(col, "")
             if isinstance(value, datetime):
                 value = value.isoformat()
+            row[col] = value
         for col in metrics:
             row[f"metrics.{col}"] = experiment.metrics.get(col, "")
         for col in parameters:
