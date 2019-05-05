@@ -59,7 +59,7 @@ def _format_experiments_for_datatable(experiments: Dict[str, Experiment]):
                 src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
 
             <meta charset=utf-8 />
-            <title>DataTables - JS Bin</title>
+            <title>Store - DataTable</title>
         </head>
         """
     )
