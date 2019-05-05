@@ -115,28 +115,44 @@ class HTMLResponder(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     # TODO: Add description
     parser = argparse.ArgumentParser("")
-    parser.add_argument("storepath")
-    group = parser.add_mutually_exclusive_group(required=True)
+    parser.add_argument("--view", type=str)
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument("--json", action="store_true")
     group.add_argument("--sqlite", action="store_true")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--no-browser", action="store_true")
 
     args = parser.parse_args()
-    if args.json:
-        store = JSONStore(args.storepath)
-    elif args.sqlite:
-        store = SQLiteStore(args.storepath)
-    html = _format_experiments_as_html(store.experiments)
+    if args.view:
+        if not args.json and not args.sqlite:
+            # Try to infer store type
+            if args.view.endswith(".json"):
+                store_cls = JSONStore
+            elif args.view.endswith(".db"):
+                store_cls = SQLiteStore
+            else:
+                raise Exception(
+                    "The type of the store could not be infered from the file ending."
+                    + " Please pass either the --json or --sqlite flag."
+                )
+        elif args.json:
+            store_cls = JSONStore
+        elif args.sqlite:
+            store_cls = SQLiteStore
 
-    try:
-        host = "localhost"
-        server = HTTPServer((host, args.port), HTMLResponder)
-        url = f"http://localhost:{args.port}"
-        print(f"Started server on {url}")
-        if not args.no_browser:
-            webbrowser.open_new_tab(url)
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("Shutting down...")
-        server.socket.close()
+        store = store_cls(args.view)
+        html = _format_experiments_as_html(store.experiments)
+
+        try:
+            host = "localhost"
+            server = HTTPServer((host, args.port), HTMLResponder)
+            url = f"http://localhost:{args.port}"
+            print(
+                f"Started server on {url}. Server can be stopped with control+c / ctrl+c"
+            )
+            if not args.no_browser:
+                webbrowser.open_new_tab(url)
+            server.serve_forever()
+        except KeyboardInterrupt:
+            print("Keyboard interrupt recieved. Shutting down...")
+            server.socket.close()
