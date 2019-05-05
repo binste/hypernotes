@@ -25,7 +25,11 @@ def _format_experiments_for_datatable(experiments: Dict[str, Experiment]):
         parameters.update(experiment.parameters)
         metrics.update(experiment.metrics)
 
-    all_columns = general_columns + sorted(list(metrics)) + sorted(list(parameters))
+    all_columns = (
+        general_columns
+        + sorted([f"metrics.{x}" for x in metrics])
+        + sorted([f"parameters.{x}" for x in parameters])
+    )
 
     data = []  # type: List[dict]
     for identifier, experiment in experiments.items():
@@ -33,13 +37,15 @@ def _format_experiments_for_datatable(experiments: Dict[str, Experiment]):
         for col in general_columns:
             row[col] = experiment.get(col, "")
         for col in metrics:
-            row[col] = experiment.metrics.get(col, "")
+            row[f"metrics.{col}"] = experiment.metrics.get(col, "")
         for col in parameters:
-            row[col] = experiment.parameters.get(col, "")
+            row[f"parameters.{col}"] = experiment.parameters.get(col, "")
         data.append(row)
 
     js_var_data = json.dumps(data)
-    js_columns = "[" + ", ".join(f'{{data: "{col}"}}' for col in all_columns) + "]"
+    # Points in column names need to be escaped for the 'data' attribute in datatables
+    escaped_columns = [col.replace(".", "\\\\.") for col in all_columns]
+    js_columns = "[" + ", ".join(f'{{data: "{col}"}}' for col in escaped_columns) + "]"
     js_table_tr = "<tr>" + "".join(f"<th>{col}</th>" for col in all_columns) + "</tr>"
 
     html_start = textwrap.dedent(
