@@ -115,14 +115,15 @@ class HTMLResponder(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     # TODO: Add description
     parser = argparse.ArgumentParser("")
-    parser.add_argument("--view", type=str)
+    parser.add_argument("store_path", type=str)
+    parser.add_argument("--view", action="store_true")
     group = parser.add_mutually_exclusive_group(required=False)
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--no-browser", action="store_true")
 
     args = parser.parse_args()
     if args.view:
-        store = Store(args.view)
+        store = Store(args.store_path)
         html = _format_notes_as_html(store.notes)
 
         try:
