@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Set, Union, Sequence, DefaultDict
 __version__ = "0.1a"
 
 
-class Experiment(dict):
+class Note(dict):
     _metrics_key = "metrics"
     _parameters_key = "parameters"
     _features_key = "features"
@@ -27,10 +27,10 @@ class Experiment(dict):
     _git_key = "git"
 
     def __init__(
-        self, description: str = "", experiment_data: Optional[Dict[str, dict]] = None
+        self, description: str = "", note_data: Optional[Dict[str, dict]] = None
     ) -> None:
-        if experiment_data is not None:
-            super().__init__(experiment_data)
+        if note_data is not None:
+            super().__init__(note_data)
         else:
             self[self._description_key] = description
             self._set_up_initial_structure()
@@ -145,35 +145,35 @@ class BaseStore:
     """
 
     def __init__(self):
-        self.experiments = {}
+        self.notes = {}
 
     def load(self):
-        """Should load the full store as Dict[str, Experiment]
-        and make it available as the attribute 'experiments'.
+        """Should load the full store as Dict[str, Note]
+        and make it available as the attribute 'notes'.
 
         This method is intended to be implemented by subclasses and so
         raises a NotImplementedError.
         """
         raise NotImplementedError("Should be implemented by BaseStore subclasses")
 
-    def add(self, experiment):
-        """Should add an experiment to the persistent store implemented by the subclass
-        and add the experiment to the 'experiments' attribute.
+    def add(self, note):
+        """Should add an note to the persistent store implemented by the subclass
+        and add the note to the 'notes' attribute.
 
         This method is intended to be implemented by subclasses and so
         raises a NotImplementedError.
         """
         raise NotImplementedError("Should be implemented by BaseStore subclasses")
-        self._add_to_experiments(experiment)
+        self._add_to_notes(note)
 
-    def _add_to_experiments(self, experiment: Experiment) -> None:
-        experiment = self._prepare_experiment_for_storing(experiment)
-        self.experiments[experiment.identifier] = experiment
+    def _add_to_notes(self, note: Note) -> None:
+        note = self._prepare_note_for_storing(note)
+        self.notes[note.identifier] = note
 
-    def _prepare_experiment_for_storing(self, experiment: Experiment) -> Experiment:
-        if experiment._end_datetime_key not in experiment:
-            experiment.end()
-        return copy.deepcopy(experiment)
+    def _prepare_note_for_storing(self, note: Note) -> Note:
+        if note._end_datetime_key not in note:
+            note.end()
+        return copy.deepcopy(note)
 
     def to_pandas(self):
         try:
@@ -188,8 +188,8 @@ class BaseStore:
 
     def _pandas_dict(self) -> dict:
         flat_dicts = []
-        for identifier, experiment in self.experiments.items():
-            flat_dicts.append(self._flatten_dict(dict(experiment)))
+        for identifier, note in self.notes.items():
+            flat_dicts.append(self._flatten_dict(dict(note)))
 
         column_dict = {}  # type: Dict[str, list]
         all_column_names = set([col for d in flat_dicts for col, _ in d.items()])
@@ -201,22 +201,18 @@ class BaseStore:
                 column_dict[column].append(d.get(column))
 
         key_order = (
-            [
-                Experiment._start_datetime_key,
-                Experiment._end_datetime_key,
-                Experiment._description_key,
-            ]
+            [Note._start_datetime_key, Note._end_datetime_key, Note._description_key]
             + self._filter_sequence_if_startswith(
-                column_dict.keys(), startswith=Experiment._metrics_key
+                column_dict.keys(), startswith=Note._metrics_key
             )
             + self._filter_sequence_if_startswith(
-                column_dict.keys(), startswith=Experiment._parameters_key
+                column_dict.keys(), startswith=Note._parameters_key
             )
             + self._filter_sequence_if_startswith(
-                column_dict.keys(), startswith=Experiment._features_key
+                column_dict.keys(), startswith=Note._features_key
             )
             + self._filter_sequence_if_startswith(
-                column_dict.keys(), startswith=Experiment._git_key
+                column_dict.keys(), startswith=Note._git_key
             )
         )
         key_order.extend(key for key in column_dict.keys() if key not in key_order)
@@ -243,7 +239,9 @@ class BaseStore:
         return [x for x in seq if x.startswith(startswith)]
 
 
-class JSONStore(BaseStore):
+class Store(BaseStore):
+    """Implements a store for notes based on a JSON file"""
+
     def __init__(self, path: Union[str, Path]) -> None:
         super().__init__()
         self.path = _convert_to_path(path)
@@ -257,33 +255,33 @@ class JSONStore(BaseStore):
         else:
             self._load_store()
 
-    def add(self, experiment: Experiment) -> None:
+    def add(self, note: Note) -> None:
         # Reload json file to prevent overwritting changes
         # to the file which could have happend since the last load.
         # This of course can not prevent overwritting changes
         # which occured between this load and the writing of the file
         self.load()
-        self._check_that_experiment_is_not_already_in_store(experiment)
-        self._add_to_experiments(experiment)
-        self._save_experiments()
+        self._check_that_note_is_not_already_in_store(note)
+        self._add_to_notes(note)
+        self._save_notes()
 
     def _create_new_store(self) -> None:
-        self._save_experiments()
+        self._save_notes()
 
     def _load_store(self) -> None:
-        experiments_raw = self._json_load(self.path)
-        self.experiments = _raw_dicts_to_experiments(experiments_raw)
+        notes_raw = self._json_load(self.path)
+        self.notes = _raw_dicts_to_notes(notes_raw)
 
-    def _check_that_experiment_is_not_already_in_store(self, experiment) -> None:
-        if experiment.identifier in self.experiments:
+    def _check_that_note_is_not_already_in_store(self, note) -> None:
+        if note.identifier in self.notes:
             raise Exception(
-                f"The identifier for the experiment '{experiment.identifier}' already exists in the store."
-                + " The experiment was not added."
+                f"The identifier for the note '{note.identifier}' already exists in the store."
+                + " The note was not added."
             )
 
-    def _save_experiments(self) -> None:
-        experiments_raw = _experiments_to_raw_dicts(self.experiments)
-        self._json_dump(experiments_raw, self.path)
+    def _save_notes(self) -> None:
+        notes_raw = _notes_to_raw_dicts(self.notes)
+        self._json_dump(notes_raw, self.path)
 
     @staticmethod
     def _json_load(path: Path) -> dict:
@@ -295,14 +293,6 @@ class JSONStore(BaseStore):
     def _json_dump(dict_obj: dict, path: Path) -> None:
         with path.open("w") as f:
             json.dump(dict_obj, f, cls=DatetimeJSONEncoder)
-
-
-class SQLiteStore(BaseStore):
-    def __init__(self, path: Union[str, Path]) -> None:
-        super().__init__()
-        self.path = _convert_to_path(path)
-
-        self.load()
 
 
 class DatetimeJSONEncoder(JSONEncoder):
@@ -347,16 +337,14 @@ def _convert_to_path(path: Union[str, Path]) -> Path:
     return path
 
 
-def _raw_dicts_to_experiments(raw_dicts: Dict[str, dict]) -> Dict[str, Any]:
-    experiments = {
-        identifier: Experiment(experiment_data=raw_experiment_data)
-        for identifier, raw_experiment_data in raw_dicts.items()
+def _raw_dicts_to_notes(raw_dicts: Dict[str, dict]) -> Dict[str, Any]:
+    notes = {
+        identifier: Note(note_data=raw_note_data)
+        for identifier, raw_note_data in raw_dicts.items()
     }
-    return experiments
+    return notes
 
 
-def _experiments_to_raw_dicts(experiments: Dict[str, Experiment]) -> Dict[str, dict]:
-    raw_dicts = {
-        identifier: dict(experiment) for identifier, experiment in experiments.items()
-    }
+def _notes_to_raw_dicts(notes: Dict[str, Note]) -> Dict[str, dict]:
+    raw_dicts = {identifier: dict(note) for identifier, note in notes.items()}
     return raw_dicts

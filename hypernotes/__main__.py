@@ -8,22 +8,22 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Dict, List, Set, Union, Any
 
-from experimentstore import JSONStore, Experiment, SQLiteStore
+from hypernotes import Store, Note
 
 
-def _format_experiments_as_html(experiments: Dict[str, Experiment]):
-    template_experiment = list(experiments.values())[0]
+def _format_notes_as_html(notes: Dict[str, Note]):
+    template_note = list(notes.values())[0]
     general_columns = [
-        template_experiment._start_datetime_key,
-        template_experiment._end_datetime_key,
-        template_experiment._description_key,
+        template_note._start_datetime_key,
+        template_note._end_datetime_key,
+        template_note._description_key,
     ]
     parameters = set()  # type: Set[str]
     metrics = set()  # type: Set[str]
 
-    for identifier, experiment in experiments.items():
-        parameters.update(experiment.parameters)
-        metrics.update(experiment.metrics)
+    for identifier, note in notes.items():
+        parameters.update(note.parameters)
+        metrics.update(note.metrics)
 
     all_columns = (
         general_columns
@@ -32,17 +32,17 @@ def _format_experiments_as_html(experiments: Dict[str, Experiment]):
     )
 
     data = []  # type: List[dict]
-    for identifier, experiment in experiments.items():
+    for identifier, note in notes.items():
         row = {}  # type: dict
         for col in general_columns:
-            value = experiment.get(col, "")
+            value = note.get(col, "")
             if isinstance(value, datetime):
                 value = value.isoformat()
             row[col] = value
         for col in metrics:
-            row[f"metrics.{col}"] = experiment.metrics.get(col, "")
+            row[f"metrics.{col}"] = note.metrics.get(col, "")
         for col in parameters:
-            row[f"parameters.{col}"] = experiment.parameters.get(col, "")
+            row[f"parameters.{col}"] = note.parameters.get(col, "")
         data.append(row)
 
     js_var_data = json.dumps(data)
@@ -117,31 +117,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("")
     parser.add_argument("--view", type=str)
     group = parser.add_mutually_exclusive_group(required=False)
-    group.add_argument("--json", action="store_true")
-    group.add_argument("--sqlite", action="store_true")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--no-browser", action="store_true")
 
     args = parser.parse_args()
     if args.view:
-        if not args.json and not args.sqlite:
-            # Try to infer store type
-            if args.view.endswith(".json"):
-                store_cls = JSONStore
-            elif args.view.endswith(".db"):
-                store_cls = SQLiteStore
-            else:
-                raise Exception(
-                    "The type of the store could not be infered from the file ending."
-                    + " Please pass either the --json or --sqlite flag."
-                )
-        elif args.json:
-            store_cls = JSONStore
-        elif args.sqlite:
-            store_cls = SQLiteStore
-
-        store = store_cls(args.view)
-        html = _format_experiments_as_html(store.experiments)
+        store = Store(args.view)
+        html = _format_notes_as_html(store.notes)
 
         try:
             host = "localhost"
