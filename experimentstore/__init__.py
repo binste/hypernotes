@@ -175,13 +175,18 @@ class BaseStore:
             experiment.end()
         return copy.deepcopy(experiment)
 
-    def to_pandas_dict(self) -> dict:
-        """
-        Usage
-        -----
-        import pandas as pd
-        >>> df = pd.DataFrame(experiment.to_pandas_data())
-        """
+    def to_pandas(self):
+        try:
+            import pandas as pd
+        except ImportError:
+            raise ImportError(
+                "Pandas is not installed. You can install it via:\n"
+                "conda install pandas\n"
+                "or: pip install pandas"
+            )
+        return pd.DataFrame(copy.deepcopy(self._pandas_dict()))
+
+    def _pandas_dict(self) -> dict:
         flat_dicts = []
         for identifier, experiment in self.experiments.items():
             flat_dicts.append(self._flatten_dict(dict(experiment)))
