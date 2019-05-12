@@ -14,10 +14,11 @@ __version__ = "0.1a"
 
 
 class Note(dict):
-    _metrics_key = "metrics"
+    _model_key = "model"
     _parameters_key = "parameters"
     _features_key = "features"
     _target_key = "target"
+    _metrics_key = "metrics"
     _info_key = "info"
 
     _description_key = "description"
@@ -38,10 +39,11 @@ class Note(dict):
             self._start()
 
     def _set_up_initial_structure(self) -> None:
-        self[self._metrics_key] = {}
+        self[self._model_key] = None
         self[self._parameters_key] = {}
         self[self._features_key] = self._initial_features_structure()
         self[self._target_key] = None
+        self[self._metrics_key] = {}
         self[self._info_key] = {}
 
     def _initial_features_structure(self) -> dict:
@@ -108,6 +110,14 @@ class Note(dict):
         self[self._description_key] = value
 
     @property
+    def model(self):
+        return self[self._model_key]
+
+    @model.setter
+    def model(self, value):
+        self[self._model_key] = value
+
+    @property
     def metrics(self):
         return self[self._metrics_key]
 
@@ -132,6 +142,14 @@ class Note(dict):
         self[self._features_key] = value
 
     @property
+    def target(self):
+        return self[self._target_key]
+
+    @target.setter
+    def target(self, value):
+        self[self._target_key] = value
+
+    @property
     def info(self):
         return self[self._info_key]
 
@@ -147,30 +165,24 @@ class BaseStore:
     """
 
     def __init__(self):
-        self.notes = {}
+        pass
 
-    def load(self):
-        """Should load the full store as Dict[str, Note]
-        and make it available as the attribute 'notes'.
+    def load(self) -> List[Note]:
+        """Should return the full store as List[Note]
 
         This method is intended to be implemented by subclasses and so
         raises a NotImplementedError.
         """
         raise NotImplementedError("Should be implemented by BaseStore subclasses")
 
-    def add(self, note):
+    def add(self, note: Note):
         """Should add an note to the persistent store implemented by the subclass
-        and add the note to the 'notes' attribute.
 
         This method is intended to be implemented by subclasses and so
         raises a NotImplementedError.
         """
         raise NotImplementedError("Should be implemented by BaseStore subclasses")
-        self._add_to_notes(note)
-
-    def _add_to_notes(self, note: Note) -> None:
         note = self._prepare_note_for_storing(note)
-        self.notes[note.identifier] = note
 
     def _prepare_note_for_storing(self, note: Note) -> Note:
         if note._end_datetime_key not in note:
@@ -186,11 +198,11 @@ class BaseStore:
                 "conda install pandas\n"
                 "or: pip install pandas"
             )
-        return pd.DataFrame(copy.deepcopy(self._pandas_dict()))
+        return pd.DataFrame(copy.deepcopy(self._pandas_dict(self.load())))
 
-    def _pandas_dict(self) -> dict:
+    def _pandas_dict(self, notes: List[Note]) -> dict:
         flat_dicts = []
-        for identifier, note in self.notes.items():
+        for note in notes:
             flat_dicts.append(self._flatten_dict(dict(note)))
 
         column_dict = {}  # type: Dict[str, list]
@@ -203,7 +215,12 @@ class BaseStore:
                 column_dict[column].append(d.get(column))
 
         key_order = (
-            [Note._start_datetime_key, Note._end_datetime_key, Note._description_key]
+            [
+                Note._start_datetime_key,
+                Note._end_datetime_key,
+                Note._description_key,
+                Note._model_key,
+            ]
             + self._filter_sequence_if_startswith(
                 column_dict.keys(), startswith=Note._metrics_key
             )
@@ -213,6 +230,7 @@ class BaseStore:
             + self._filter_sequence_if_startswith(
                 column_dict.keys(), startswith=Note._features_key
             )
+            + [Note._target_key]
             + self._filter_sequence_if_startswith(
                 column_dict.keys(), startswith=Note._git_key
             )
@@ -247,54 +265,113 @@ class Store(BaseStore):
     def __init__(self, path: Union[str, Path]) -> None:
         super().__init__()
         self.path = _convert_to_path(path)
+        self._create_store_if_not_exists()
 
-        self.load()
-
-    def load(self):
+    def _create_store_if_not_exists(self):
         store_exists = self.path.exists()
         if not store_exists:
-            self._create_new_store()
-        else:
-            self._load_store()
+            self._save_notes(notes=[])
+
+    def load(self) -> List[Note]:
+        """Loads all notes contained in the store and returns them
+        as a sorted list with the most recent note first
+        """
+        notes_raw = self._json_load(self.path)
+        notes = _raw_dicts_to_notes(notes_raw)
+        return self._sort_notes(notes)
 
     def add(self, note: Note) -> None:
-        # Reload json file to prevent overwritting changes
-        # to the file which could have happend since the last load.
-        # This of course can not prevent overwritting changes
-        # which occured between this load and the writing of the file
-        self.load()
-        self._check_that_note_is_not_already_in_store(note)
-        self._add_to_notes(note)
-        self._save_notes()
-
-    def _create_new_store(self) -> None:
-        self._save_notes()
-
-    def _load_store(self) -> None:
-        notes_raw = self._json_load(self.path)
-        self.notes = _raw_dicts_to_notes(notes_raw)
-
-    def _check_that_note_is_not_already_in_store(self, note) -> None:
-        if note.identifier in self.notes:
+        """Adds a single note to the .json file of the store"""
+        # As the whole json file needs to be loaded to add a new entry,
+        # changes made to the file between the call to self.load and
+        # the saving of the file will be overwritten.
+        all_notes = self.load()
+        if self._notes_are_subset(notes_subset=[note], all_notes=all_notes):
             raise Exception(
                 f"The identifier for the note '{note.identifier}' already exists in the store."
                 + " The note was not added."
             )
+        note = self._prepare_note_for_storing(note)
+        all_notes.append(note)
+        self._save_notes(all_notes)
 
-    def _save_notes(self) -> None:
-        notes_raw = _notes_to_raw_dicts(self.notes)
-        self._json_dump(notes_raw, self.path)
+    def update(self, notes: List[Note]) -> None:
+        """Updates the passed in notes in the .json file of the store"""
+        notes_to_be_updated = notes
+        # As the whole json file needs to be loaded to add a new entry,
+        # changes made to the file between the call to self.load and
+        # the saving of the file will be overwritten.
+        stored_notes = self.load()
+        # Update list by first filtering out notes which should be updated and
+        # then insert new version of notes
+        assert self._notes_are_subset(notes_subset=notes, all_notes=stored_notes), (
+            "Some of the notes do not yet exist in the store."
+            + " Add them with the .add method. Nothing was updated."
+        )
+        new_stored_notes = self._filter_notes(
+            notes_to_filter_out=notes, all_notes=stored_notes
+        )
+        new_stored_notes.extend(notes_to_be_updated)
+        self._save_notes(new_stored_notes)
+
+    def remove(self, notes: List[Note]) -> None:
+        """Removes passed in notes from store"""
+        stored_notes = self.load()
+        assert self._notes_are_subset(notes_subset=notes, all_notes=stored_notes), (
+            "Some of the notes do not yet exist in the store."
+            + " Nothing was removed. Only pass in notes which already"
+            + " exist in the store."
+        )
+        new_stored_notes = self._filter_notes(
+            notes_to_filter_out=notes, all_notes=stored_notes
+        )
+        self._save_notes(new_stored_notes)
+
+    def _notes_are_subset(
+        self, notes_subset: List[Note], all_notes: List[Note]
+    ) -> bool:
+        """Returns true if all notes in note_subset exist in all_notes, else False"""
+        notes_subset_identifiers = self._get_identifers_of_notes(notes_subset)
+        all_notes_identifiers = self._get_identifers_of_notes(all_notes)
+        return all(
+            identifier in all_notes_identifiers
+            for identifier in notes_subset_identifiers
+        )
+
+    def _get_identifers_of_notes(self, notes: List[Note]) -> List[str]:
+        return [n.identifier for n in notes]
+
+    def _filter_notes(
+        self, notes_to_filter_out: List[Note], all_notes: List[Note]
+    ) -> List[Note]:
+        notes_to_filter_out_identifiers = self._get_identifers_of_notes(
+            notes_to_filter_out
+        )
+        return [
+            note
+            for note in all_notes
+            if note.identifier not in notes_to_filter_out_identifiers
+        ]
+
+    def _save_notes(self, notes: List[Note]) -> None:
+        notes = self._sort_notes(notes)
+        raw_dicts = _notes_to_raw_dicts(notes)
+        self._json_dump(raw_dicts, self.path)
+
+    def _sort_notes(self, notes: List[Note]) -> List[Note]:
+        """Sorted by start datetime. Most recent note first"""
+        return list(sorted(notes, key=lambda x: x[x._start_datetime_key], reverse=True))
 
     @staticmethod
-    def _json_load(path: Path) -> dict:
+    def _json_load(path: Path) -> List[dict]:
         with path.open("r") as f:
             content = json.load(f, object_hook=_deserialize_datetime)
         return content
 
     @staticmethod
-    def _json_dump(dict_obj: dict, path: Path) -> None:
+    def _json_dump(obj: List[dict], path: Path) -> None:
         with path.open("w") as f:
-            json.dump(dict_obj, f, cls=DatetimeJSONEncoder)
+            json.dump(obj, f, cls=DatetimeJSONEncoder)
 
 
 class DatetimeJSONEncoder(JSONEncoder):
@@ -339,14 +416,11 @@ def _convert_to_path(path: Union[str, Path]) -> Path:
     return path
 
 
-def _raw_dicts_to_notes(raw_dicts: Dict[str, dict]) -> Dict[str, Any]:
-    notes = {
-        identifier: Note(note_data=raw_note_data)
-        for identifier, raw_note_data in raw_dicts.items()
-    }
-    return notes
+def _raw_dicts_to_notes(raw_dicts: List[dict]) -> List[Note]:
+    converted_notes = [Note(note_data=raw_note_data) for raw_note_data in raw_dicts]
+    return converted_notes
 
 
-def _notes_to_raw_dicts(notes: Dict[str, Note]) -> Dict[str, dict]:
-    raw_dicts = {identifier: dict(note) for identifier, note in notes.items()}
+def _notes_to_raw_dicts(notes: List[Note]) -> List[dict]:
+    raw_dicts = [dict(note) for note in notes]
     return raw_dicts

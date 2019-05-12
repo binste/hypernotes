@@ -11,8 +11,8 @@ from typing import Dict, List, Set, Union, Any
 from hypernotes import Store, Note
 
 
-def _format_notes_as_html(notes: Dict[str, Note]):
-    template_note = list(notes.values())[0]
+def _format_notes_as_html(notes: List[Note]):
+    template_note = notes[0]
     general_columns = [
         template_note._start_datetime_key,
         template_note._end_datetime_key,
@@ -21,7 +21,7 @@ def _format_notes_as_html(notes: Dict[str, Note]):
     parameters = set()  # type: Set[str]
     metrics = set()  # type: Set[str]
 
-    for identifier, note in notes.items():
+    for note in notes:
         parameters.update(note.parameters)
         metrics.update(note.metrics)
 
@@ -32,7 +32,7 @@ def _format_notes_as_html(notes: Dict[str, Note]):
     )
 
     data = []  # type: List[dict]
-    for identifier, note in notes.items():
+    for note in notes:
         row = {}  # type: dict
         for col in general_columns:
             value = note.get(col, "")
