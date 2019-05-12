@@ -2,16 +2,18 @@
 Publish a new version:
 $ git tag X.Y.Z -m "Release X.Y.Z"
 $ git push --tags
+Use either pip or conda to upgrade twine and wheel
 $ pip install --upgrade twine wheel
 $ python setup.py sdist bdist_wheel
 $ twine upload dist/*
 """
 import setuptools
+from pathlib import Path
 
 import hypernotes
 
-with open("README.md", "r") as f:
-    long_description = f.read()
+HERE = Path(__file__).parent
+README = (HERE / "README.md").read_text()
 
 setuptools.setup(
     name="hypernotes",
@@ -21,7 +23,7 @@ setuptools.setup(
     description=(
         "hypernotes is a lightweight Python package for taking notes on your machine learning experiments."
     ),
-    long_description=long_description,
+    long_description=README,
     long_description_content_type="text/markdown",
     packages=["hypernotes"],
     keywords=[
