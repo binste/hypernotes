@@ -167,13 +167,19 @@ class BaseStore:
     def __init__(self):
         pass
 
-    def load(self) -> List[Note]:
-        """Should return the full store as List[Note]
+    def load(self, return_dataframe: bool = False):
+        """Should return the full store as List[Note] with the most recent
+        note first, or, if return_dataframe=True,
+        as a Pandas dataframe.
 
         This method is intended to be implemented by subclasses and so
         raises a NotImplementedError.
         """
         raise NotImplementedError("Should be implemented by BaseStore subclasses")
+        loaded_notes = self._load()
+        if return_dataframe:
+            loaded_notes = self._to_pandas(loaded_notes)
+        return loaded_notes
 
     def add(self, note: Note):
         """Should add an note to the persistent store implemented by the subclass
@@ -189,7 +195,7 @@ class BaseStore:
             note.end()
         return copy.deepcopy(note)
 
-    def to_pandas(self):
+    def _to_pandas(self, notes: List[Note]):
         try:
             import pandas as pd
         except ImportError:
@@ -198,7 +204,7 @@ class BaseStore:
                 "conda install pandas\n"
                 "or: pip install pandas"
             )
-        return pd.DataFrame(copy.deepcopy(self._pandas_dict(self.load())))
+        return pd.DataFrame(copy.deepcopy(self._pandas_dict(notes)))
 
     def _pandas_dict(self, notes: List[Note]) -> dict:
         flat_dicts = []
@@ -272,10 +278,16 @@ class Store(BaseStore):
         if not store_exists:
             self._save_notes(notes=[])
 
-    def load(self) -> List[Note]:
-        """Loads all notes contained in the store and returns them
-        as a sorted list with the most recent note first
+    def load(self, return_dataframe: bool = False):
+        """Returns the full store as List[Note] with the most recent
+        note first, or, if return_dataframe=True, as a Pandas dataframe.
         """
+        loaded_notes = self._load()
+        if return_dataframe:
+            loaded_notes = self._to_pandas(loaded_notes)
+        return loaded_notes
+
+    def _load(self) -> List[Note]:
         notes_raw = self._json_load(self.path)
         notes = _raw_dicts_to_notes(notes_raw)
         return self._sort_notes(notes)
