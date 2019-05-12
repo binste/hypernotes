@@ -1,4 +1,6 @@
 # hypernotes
+[![PyPI version](https://badge.fury.io/py/hypernotes.svg)](https://badge.fury.io/py/hypernotes)
+
 hypernotes is a lightweight Python package for taking notes on your machine learning experiments. It provides a simple way to store hyperparameters, their corresponding evaluation metrics, as well as additional information and retrieve them again later for analyzing. It is written in pure Python and requires no additional dependencies.
 
 # Installation
