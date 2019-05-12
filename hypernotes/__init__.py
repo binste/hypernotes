@@ -17,6 +17,7 @@ class Note(dict):
     _metrics_key = "metrics"
     _parameters_key = "parameters"
     _features_key = "features"
+    _target_key = "target"
     _info_key = "info"
 
     _description_key = "description"
@@ -40,6 +41,7 @@ class Note(dict):
         self[self._metrics_key] = {}
         self[self._parameters_key] = {}
         self[self._features_key] = self._initial_features_structure()
+        self[self._target_key] = None
         self[self._info_key] = {}
 
     def _initial_features_structure(self) -> dict:
