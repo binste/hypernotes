@@ -48,12 +48,15 @@ note.target = "target"
 note.info["important_stuff"] = "something noteworthy"
 
 # ... Rest of your code ...
-# recall, precision = train_and_evaluate_model(parameters=note.params,
+# train_recall, train_precision test_recall, test_precision = train_and_evaluate_model(
+#                                              parameters=note.params,
 #                                              feature_names=note.features,
 #                                              label_name=note.label)
 # ...
-note.metrics["recall"] = recall
-note.metrics["precision"] = precision
+
+# Add your calculated evaluation metrics
+note.metrics["train"] = {"recall": train_recall, "precision": train_precision}
+note.metrics["test"] = {"recall": test_recall, "precision": test_precision}
 
 store = Store("hyperstore.json")
 store.add(note)
