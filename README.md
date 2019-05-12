@@ -28,7 +28,7 @@ A note is uniquely identifiable by its `identifier` attribute, which is the star
 ```python
 from hypernotes import Note, Store
 
-note = Note("text of your experiment")
+note = Note("Some descriptive text about your experiment")
 
 # Add name of used algorithm
 note.model = "randomforest"
