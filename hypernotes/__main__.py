@@ -124,7 +124,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.view:
         store = Store(args.store_path)
-        html = _format_notes_as_html(store.notes)
+        html = _format_notes_as_html(store.load())
 
         try:
             host = "localhost"
