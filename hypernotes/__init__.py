@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import subprocess
+import sys
 import textwrap
 from datetime import datetime
 from json import JSONEncoder
@@ -21,20 +22,21 @@ class Note(dict):
     _metrics_key = "metrics"
     _info_key = "info"
 
-    _description_key = "description"
+    _text_key = "text"
 
     _start_datetime_key = "start_datetime"
     _end_datetime_key = "end_datetime"
 
     _git_key = "git"
+    _python_path_key = "python_path"
 
     def __init__(
-        self, description: str = "", note_data: Optional[Dict[str, dict]] = None
+        self, text: str = "", note_data: Optional[Dict[str, dict]] = None
     ) -> None:
         if note_data is not None:
             super().__init__(note_data)
         else:
-            self[self._description_key] = description
+            self[self._text_key] = text
             self._set_up_initial_structure()
             self._start()
 
@@ -45,6 +47,9 @@ class Note(dict):
         self[self._target_key] = None
         self[self._metrics_key] = {}
         self[self._info_key] = {}
+        self[self._start_datetime_key] = None
+        self[self._end_datetime_key] = None
+        self[self._python_path_key] = self._python_executable_path()
 
     def _initial_features_structure(self) -> dict:
         """This method can easily be overwritten to return a different
@@ -52,6 +57,9 @@ class Note(dict):
         include different feature categories.
         """
         return {"identifier": [], "binary": [], "categorical": [], "numerical": []}
+
+    def _python_executable_path(self) -> str:
+        return sys.executable
 
     def _start(self) -> None:
         self[self._start_datetime_key] = datetime.now()
@@ -102,12 +110,12 @@ class Note(dict):
         return _format_datetime(self[self._start_datetime_key])
 
     @property
-    def description(self) -> str:
-        return self[self._description_key]
+    def text(self) -> str:
+        return self[self._text_key]
 
-    @description.setter
-    def description(self, value):
-        self[self._description_key] = value
+    @text.setter
+    def text(self, value):
+        self[self._text_key] = value
 
     @property
     def model(self):
@@ -191,7 +199,7 @@ class BaseStore:
         note = self._prepare_note_for_storing(note)
 
     def _prepare_note_for_storing(self, note: Note) -> Note:
-        if note._end_datetime_key not in note:
+        if note[note._end_datetime_key] is None:
             note.end()
         return copy.deepcopy(note)
 
@@ -224,7 +232,7 @@ class BaseStore:
             [
                 Note._start_datetime_key,
                 Note._end_datetime_key,
-                Note._description_key,
+                Note._text_key,
                 Note._model_key,
             ]
             + self._filter_sequence_if_startswith(

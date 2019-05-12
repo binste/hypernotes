@@ -16,7 +16,7 @@ def _format_notes_as_html(notes: List[Note]):
     general_columns = [
         template_note._start_datetime_key,
         template_note._end_datetime_key,
-        template_note._description_key,
+        template_note._text_key,
     ]
     parameters = set()  # type: Set[str]
     metrics = set()  # type: Set[str]
@@ -113,7 +113,7 @@ class HTMLResponder(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    # TODO: Add description
+    # TODO: Add text
     parser = argparse.ArgumentParser("")
     parser.add_argument("store_path", type=str)
     parser.add_argument("--view", action="store_true")

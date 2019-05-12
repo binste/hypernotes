@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 
@@ -18,11 +19,17 @@ class TestNote:
                 note._parameters_key,
                 note._features_key,
                 note._info_key,
-                note._description_key,
+                note._text_key,
                 note._start_datetime_key,
+                note._end_datetime_key,
+                note._python_path_key,
             )
         )
         assert isinstance(note[note._start_datetime_key], datetime)
+        python_path = note[note._python_path_key]
+        assert isinstance(python_path, str)
+        assert python_path.endswith("python")
+        assert Path(python_path).exists()
 
     def test_end(self):
         note = Note()
@@ -37,7 +44,7 @@ class TestNote:
     def test_pass_note_data(self):
         note_data = {
             Note._start_datetime_key: datetime.now(),
-            Note._description_key: "",
+            Note._text_key: "",
             Note._model_key: "randomforest",
             Note._metrics_key: {"some_metric": 2},
             Note._parameters_key: {"some_parameter": True},
@@ -56,10 +63,10 @@ class TestNote:
 
         assert dict(note) == note_data
 
-    def test_pass_description(self):
-        description = "Descriptive text about the note"
-        note = Note(description=description)
-        assert note.description == description
+    def test_pass_text(self):
+        text = "Descriptive text about the note"
+        note = Note(text=text)
+        assert note.text == text
 
 
 class TestBaseStore:
