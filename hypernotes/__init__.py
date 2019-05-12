@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union, Sequence, DefaultDict
 
 
-__version__ = "0.1a"
+__version__ = "0.1.0"
 
 
 class Note(dict):
