@@ -1,6 +1,6 @@
 """
 Publish a new version:
-$ git tag X.Y.Z -m "Release X.Y.Z"
+$ git tag vX.Y.Z -m "Release X.Y.Z"
 $ git push --tags
 Use either pip or conda to upgrade twine and wheel
 $ pip install --upgrade twine wheel
