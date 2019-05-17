@@ -36,6 +36,24 @@ class Note(dict):
     def __init__(
         self, text: str = "", content: Optional[Dict[str, dict]] = None
     ) -> None:
+        """A small wrapper around dictionaries with a default structure, which can
+        be used like a normal dictionary, but additionally stores useful information
+        such as time and date, last commit and current branch of git repository,
+        path to Python executable, etc.
+
+        The most commonly used dictionary keys can be accessed as attributes
+        for better auto-completion support and readability.
+
+
+        Parameters
+        ----------
+        text : str, optional (default="")
+            Can be used to store some descriptive text about your experiment
+        content : Optional[Dict[str, dict]], optional (default=None)
+            Mainly for internal use to create Note instances out of loaded
+            dictionaries from a Store. If content is passed, no additional information
+            is added on instantiation of the class (e.g. no start datetime).
+        """
         if content is not None:
             super().__init__(content)
             self._content_passed = True
@@ -71,6 +89,7 @@ class Note(dict):
         self._add_git_info()
 
     def end(self) -> None:
+        """Adds the current datetime as 'end_datetime' to the note"""
         self[self._end_datetime_key] = datetime.now()
 
     def _add_git_info(self) -> None:
@@ -287,9 +306,15 @@ class BaseStore:
 
 
 class Store(BaseStore):
-    """Implements a store for Note instances based on a JSON file"""
-
     def __init__(self, path: Union[str, Path]) -> None:
+        """Stores and loads Note instances in and from a json file
+
+        Parameters
+        ----------
+        path : Union[str, Path]
+            Path to the json file. If it does not yet exist, a new one will be created,
+            else, the Store will interact with the existing file and modify it
+        """
         super().__init__()
         self.path = _convert_to_path(path)
         self._create_store_if_not_exists()
@@ -300,8 +325,21 @@ class Store(BaseStore):
             self._save_notes(notes=[])
 
     def load(self, return_dataframe: bool = False):
-        """Returns the full store as List[Note] with the most recent
-        note first, or, if return_dataframe=True, as a Pandas dataframe.
+        """Loads the entire json file and returns it as a list of Note instances
+        with the most recent note first. Optionally, a pandas dataframe can be
+        returned instead.
+
+        Parameters
+        ----------
+        return_dataframe : bool, optional (default=False)
+            If True, a pandas dataframe is returned with one row per note,
+            where nested structures inside the notes are resolved as far as possible
+            and the keys are joined with "." to form column names. This requires
+            the pandas package to be installed.
+
+        Returns
+        -------
+        Either List[str] or pd.DataFrame, depending on value of return_dataframe
         """
         loaded_notes = self._load()
         if return_dataframe:
@@ -314,7 +352,19 @@ class Store(BaseStore):
         return self._sort_notes(notes)
 
     def add(self, note: Note) -> None:
-        """Adds a single note to the .json file of the store"""
+        """Adds the given note to the .json file of the store
+
+        Parameters
+        ----------
+        note : Note
+            The Note instance which should be added to the store. The note
+            needs to consist entirely of json serializable objects or
+            datetime.datetime instances
+
+        Returns
+        -------
+        None
+        """
         # As the whole json file needs to be loaded to add a new entry,
         # changes made to the file between the call to self.load and
         # the saving of the file will be overwritten.
@@ -329,7 +379,20 @@ class Store(BaseStore):
         self._save_notes(all_notes)
 
     def update(self, notes: Union[Note, Sequence[Note]]) -> None:
-        """Updates the passed in notes in the .json file of the store"""
+        """Updates the passed in notes in the .json file of the store
+
+        Uses the identifier attribute of the notes to find the original ones
+        and replaces them
+
+        Parameters
+        ----------
+        notes: Union[Note, Sequence[Note]]
+            One or more notes which should be updated
+
+        Returns
+        -------
+        None
+        """
         if isinstance(notes, Note):
             notes_to_be_updated = [notes]
         else:
@@ -353,7 +416,19 @@ class Store(BaseStore):
         self._save_notes(new_stored_notes)
 
     def remove(self, notes: Union[Note, Sequence[Note]]) -> None:
-        """Removes passed in notes from store"""
+        """Removes passed in notes from store
+
+        Uses the identifier attribute of the notes to find the original ones
+
+        Parameters
+        ----------
+        notes: Union[Note, Sequence[Note]]
+            One or more notes which should be removed
+
+        Returns
+        -------
+        None
+        """
         if isinstance(notes, Note):
             notes_to_be_removed = [notes]
         else:
