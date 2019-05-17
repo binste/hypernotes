@@ -327,35 +327,46 @@ class Store(BaseStore):
         all_notes.append(note)
         self._save_notes(all_notes)
 
-    def update(self, notes: List[Note]) -> None:
+    def update(self, notes: Union[Note, Sequence[Note]]) -> None:
         """Updates the passed in notes in the .json file of the store"""
-        notes_to_be_updated = notes
+        if isinstance(notes, Note):
+            notes_to_be_updated = [notes]
+        else:
+            notes_to_be_updated = list(notes)
         # As the whole json file needs to be loaded to add a new entry,
         # changes made to the file between the call to self.load and
         # the saving of the file will be overwritten.
         stored_notes = self.load()
         # Update list by first filtering out notes which should be updated and
         # then insert new version of notes
-        assert self._notes_are_subset(notes_subset=notes, all_notes=stored_notes), (
+        assert self._notes_are_subset(
+            notes_subset=notes_to_be_updated, all_notes=stored_notes
+        ), (
             "Some of the notes do not yet exist in the store."
             + " Add them with the .add method. Nothing was updated."
         )
         new_stored_notes = self._filter_notes(
-            notes_to_filter_out=notes, all_notes=stored_notes
+            notes_to_filter_out=notes_to_be_updated, all_notes=stored_notes
         )
         new_stored_notes.extend(notes_to_be_updated)
         self._save_notes(new_stored_notes)
 
-    def remove(self, notes: List[Note]) -> None:
+    def remove(self, notes: Union[Note, Sequence[Note]]) -> None:
         """Removes passed in notes from store"""
+        if isinstance(notes, Note):
+            notes_to_be_removed = [notes]
+        else:
+            notes_to_be_removed = list(notes)
         stored_notes = self.load()
-        assert self._notes_are_subset(notes_subset=notes, all_notes=stored_notes), (
+        assert self._notes_are_subset(
+            notes_subset=notes_to_be_removed, all_notes=stored_notes
+        ), (
             "Some of the notes do not yet exist in the store."
             + " Nothing was removed. Only pass in notes which already"
             + " exist in the store."
         )
         new_stored_notes = self._filter_notes(
-            notes_to_filter_out=notes, all_notes=stored_notes
+            notes_to_filter_out=notes_to_be_removed, all_notes=stored_notes
         )
         self._save_notes(new_stored_notes)
 
