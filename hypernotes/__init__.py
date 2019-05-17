@@ -427,7 +427,7 @@ def _format_datetime(dt: datetime) -> str:
 
 
 def _parse_datetime(dt_str: str) -> datetime:
-    return datetime.fromisoformat(dt_str)
+    return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S.%f")
 
 
 def _convert_to_path(path: Union[str, Path]) -> Path:
