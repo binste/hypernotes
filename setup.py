@@ -22,7 +22,7 @@ setuptools.setup(
     author="Stefan Binder",
     url="https://github.com/binste/hypernotes",
     description=(
-        "hypernotes is a lightweight Python package for taking notes on your machine learning experiments"
+        "A lightweight Python package for taking notes on your machine learning experiments"
     ),
     long_description=README,
     long_description_content_type="text/markdown",
