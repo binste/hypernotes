@@ -5,10 +5,11 @@ import os
 import subprocess
 import sys
 import textwrap
+import types
 from datetime import datetime
 from json import JSONEncoder
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union, Sequence, DefaultDict
+from typing import Any, Dict, List, Optional, Set, Union, Sequence, DefaultDict, Tuple
 
 
 __version__ = "0.1.1"
@@ -35,7 +36,9 @@ class Note(dict):
     ) -> None:
         if note_data is not None:
             super().__init__(note_data)
+            self._note_data_passed = True
         else:
+            self._note_data_passed = False
             self[self._text_key] = text
             self._set_up_initial_structure()
             self._start()
@@ -165,6 +168,15 @@ class Note(dict):
     def info(self, value):
         self[self._info_key] = info
 
+    def __repr__(self) -> str:
+        r = f"Note("
+        if self._note_data_passed:
+            r += f"note_data={repr(dict(self))}"
+        else:
+            r += f"text='{self[self._text_key]}'"
+        r += ")"
+        return r
+
 
 class BaseStore:
     """The base store class. This class cannot be used directly and mostly acts
@@ -274,7 +286,7 @@ class BaseStore:
 
 
 class Store(BaseStore):
-    """Implements a store for notes based on a JSON file"""
+    """Implements a store for Note instances based on a JSON file"""
 
     def __init__(self, path: Union[str, Path]) -> None:
         super().__init__()
@@ -392,6 +404,9 @@ class Store(BaseStore):
     def _json_dump(obj: List[dict], path: Path) -> None:
         with path.open("w") as f:
             json.dump(obj, f, cls=DatetimeJSONEncoder)
+
+    def __repr__(self) -> str:
+        return f"Store('{self.path}')"
 
 
 class DatetimeJSONEncoder(JSONEncoder):
