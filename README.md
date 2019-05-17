@@ -15,14 +15,14 @@ hypernotes implements a *Note* and a *Store* class. A *Note* is a small wrapper 
 
 * the path to your Python executable,
 * information about the current state of your Git repository (if there is one) such as the last commit, current branch, etc.,
-* start (upon initialization) and end time (call note.end() or add to store)
+* start (upon initialization) and end datetime (call note.end() or add to store)
 
 and it provides
 
-* a useful default dictionary structure (just print a note instance and you will see what's inside)
+* a useful default dictionary structure (print a note instance and you will see what's inside)
 * access to the most commonly used dictionary keys as attributes for better auto-completion support and readability (see below, for example `note.metrics`)
 
-The notes are then saved using as *Store* instance, which uses a json file. Due to this, you can only add json serializable objects + datetime.datetime instances to a *Note*.
+The notes are then saved with a *Store* instance, which uses a json file. Due to this, you should only add json serializable objects + *datetime.datetime* instances to a *Note*.
 
 A note is uniquely identifiable by its `identifier` attribute, which is the start datetime in ISO format.
 
@@ -79,7 +79,7 @@ notes_df.head()
 ```
 
 ## Update notes
-If you want to update notes, you can do this either directly in the *json* file containing the notes, or load the notes as described above, change the relevant ones, and pass them to the `update` method.
+If you want to update notes, you can do this either directly in the json file containing the notes, or load the notes as described above, change the relevant ones, and pass them to the `update` method.
 ```python
 notes = store.load()
 updated_notes = []
@@ -91,24 +91,34 @@ store.update(updated_notes)
 ```
 
 ## Remove notes
-If you want to remove notes, you can do this either directly in the *json* file containing the notes, or load the notes as described above, and pass the ones which you want to remove to the `remove` method.
+If you want to remove notes, you can do this either directly in the json file containing the notes, or load the notes as described above, and pass the ones which you want to remove to the `remove` method.
 ```python
 notes = store.load()
 notes_to_remove = notes[:2]
 store.remove(notes_to_remove)
 ```
 
-## View content of a store directly in your browser
-To get a quick glance into a store, you can use the following command. It will start an http server and automatically open the relevant page in your web browser. The page contains an interactive table which shows the most relevant information of all notes in the store such as metrics, parameters, etc.
-
+## View content of a store
+### Directly in your browser (no additional dependencies)
+To get a quick glance into a store, you can use the following command. It will start an http server and automatically open the relevant page in your web browser. The page contains an interactive table which shows the most relevant information of all notes in the store such as metrics and parameters.
 ```
 $ python -m hypernotes hyperstore.json --view
 ```
-
 This only requires a modern web browser as well as an internet connection to load the JQuery and Datatables Javascript libraries.
 
+### pandas and QGrid
+Another useful option might be to load the store as a pandas dataframe (see [Load notes](#load-notes)) and then use [Qgrid](https://github.com/quantopian/qgrid) in a Jupyter notebook.
+
+## Bonus: Store additional objects in separate experiment folders
+If you want to store larger artifacts of your experiment, such as a trained model, you could create a separate folder and use the identifier of a note as part of the name.
+
+```python
+experiment_folder = f"experiment_{note.identifier}"
+```
+You can then store any additional objects into this folder and it will be very easy to lather on link them again to the hyperparameters and metrics stored using hypernotes.
+
 # Other tools
-Check out tools such as MLflow, Sacred, DVC, etc. if you need better multi-user capabilities, more advanced reproducibility features, dataset versioning, ...
+Check out tools such as [MLflow](https://mlflow.org/), [Sacred](https://sacred.readthedocs.io/en/latest/index.html), or [DVC](https://dvc.org/) if you need better multi-user capabilities, more advanced reproducibility features, dataset versioning, ...
 
 # Development
 Feel free to open a GitHub issue or even better submit a pull request if you find a bug or miss a feature.
@@ -117,3 +127,5 @@ Any requirements for developing the package can be installed with
 ```
 pip install -r requirements_dev.txt
 ```
+
+Code is required to be formatted with [Black](https://github.com/python/black).
