@@ -1,10 +1,13 @@
+import multiprocessing as mp
+import time
 from datetime import datetime
 from pathlib import Path
 
 import pytest
+import requests
 
 from hypernotes import BaseStore, Note, Store
-from hypernotes.__main__ import _format_notes_as_html
+from hypernotes.__main__ import _format_notes_as_html, main, _parse_args
 
 
 class TestNote:
@@ -188,6 +191,29 @@ class TestMain:
 
         html = _format_notes_as_html([note])
         self.validate_html(html, expected_test_value)
+
+    def test_command_line_interface(self, tmp_path):
+        note_1 = Note("Note 1")
+        expected_test_value = "expected_test_value"
+        note_1.parameters["find_this_value"] = expected_test_value
+        note_2 = Note("Note 2")
+        store_path = tmp_path / "test_store.json"
+        store = Store(store_path)
+        store.add(note_1)
+        store.add(note_2)
+
+        port = 8080
+        p = mp.Process(
+            target=main,
+            args=([str(store_path), "--view", "--port", str(port), "--no-browser"],),
+        )
+        try:
+            p.start()
+            time.sleep(1)
+            html = requests.get(f"http://localhost:{port}").text
+            self.validate_html(html, expected_test_value)
+        finally:
+            p.terminate()
 
     def validate_html(self, html: str, expected_test_value: str) -> None:
         assert expected_test_value in html

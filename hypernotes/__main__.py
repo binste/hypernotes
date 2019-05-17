@@ -3,6 +3,7 @@ import copy
 import json
 import textwrap
 import webbrowser
+import sys
 from datetime import datetime
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -106,25 +107,28 @@ def _format_notes_as_html(notes: List[Note]):
 
 class HTMLResponder(BaseHTTPRequestHandler):
     def do_GET(self):
+        html = _format_notes_as_html(store.load())
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
         self.wfile.write(html.encode("utf-8"))
 
 
-if __name__ == "__main__":
-    # TODO: Add text
+def _parse_args(args):
     parser = argparse.ArgumentParser("")
     parser.add_argument("store_path", type=str)
     parser.add_argument("--view", action="store_true")
-    group = parser.add_mutually_exclusive_group(required=False)
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--no-browser", action="store_true")
 
-    args = parser.parse_args()
+    return parser.parse_args(args)
+
+
+def main(raw_args):
+    global store
+    args = _parse_args(raw_args)
     if args.view:
         store = Store(args.store_path)
-        html = _format_notes_as_html(store.load())
 
         try:
             host = "localhost"
@@ -137,5 +141,9 @@ if __name__ == "__main__":
                 webbrowser.open_new_tab(url)
             server.serve_forever()
         except KeyboardInterrupt:
-            print("Keyboard interrupt recieved. Shutting down...")
+            print("\nKeyboard interrupt recieved. Shutting down...")
             server.socket.close()
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
