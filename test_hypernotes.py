@@ -44,8 +44,8 @@ class TestNote:
             assert isinstance(git_value, str)
             assert len(git_value) > 1
 
-    def test_pass_note_data(self):
-        note_data = {
+    def test_pass_content(self):
+        content = {
             Note._start_datetime_key: datetime.now(),
             Note._text_key: "",
             Note._model_key: "randomforest",
@@ -62,9 +62,9 @@ class TestNote:
             Note._target_key: "target_column",
             Note._info_key: {"additional_info": "some info"},
         }
-        note = Note(note_data=note_data)
+        note = Note(content=content)
 
-        assert dict(note) == note_data
+        assert dict(note) == content
 
     def test_pass_text(self):
         text = "Descriptive text about the note"

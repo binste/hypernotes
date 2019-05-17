@@ -8,7 +8,9 @@ import textwrap
 import types
 from datetime import datetime
 from json import JSONEncoder
+from unittest.mock import patch
 from pathlib import Path
+from pprint import pformat
 from typing import Any, Dict, List, Optional, Set, Union, Sequence, DefaultDict, Tuple
 
 
@@ -32,13 +34,13 @@ class Note(dict):
     _python_path_key = "python_path"
 
     def __init__(
-        self, text: str = "", note_data: Optional[Dict[str, dict]] = None
+        self, text: str = "", content: Optional[Dict[str, dict]] = None
     ) -> None:
-        if note_data is not None:
-            super().__init__(note_data)
-            self._note_data_passed = True
+        if content is not None:
+            super().__init__(content)
+            self._content_passed = True
         else:
-            self._note_data_passed = False
+            self._content_passed = False
             self[self._text_key] = text
             self._set_up_initial_structure()
             self._start()
@@ -169,12 +171,11 @@ class Note(dict):
         self[self._info_key] = info
 
     def __repr__(self) -> str:
-        r = f"Note("
-        if self._note_data_passed:
-            r += f"note_data={repr(dict(self))}"
-        else:
-            r += f"text='{self[self._text_key]}'"
-        r += ")"
+        # Code and idea for patching sorted to prevent sorting by
+        # dictionary keys come from:
+        # https://stackoverflow.com/a/55661095
+        with patch("builtins.sorted", new=lambda l, **_: l):
+            r = f"Note(content={pformat(dict(self))})"
         return r
 
 
@@ -463,7 +464,7 @@ def _convert_to_path(path: Union[str, Path]) -> Path:
 
 
 def _raw_dicts_to_notes(raw_dicts: List[dict]) -> List[Note]:
-    converted_notes = [Note(note_data=raw_note_data) for raw_note_data in raw_dicts]
+    converted_notes = [Note(content=raw_content) for raw_content in raw_dicts]
     return converted_notes
 
 
