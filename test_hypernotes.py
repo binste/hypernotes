@@ -204,8 +204,7 @@ class TestMain:
 
         port = 8080
         p = mp.Process(
-            target=main,
-            args=([str(store_path), "--view", "--port", str(port), "--no-browser"],),
+            target=main, args=([str(store_path), "--port", str(port), "--no-browser"],)
         )
         try:
             p.start()

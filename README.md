@@ -102,7 +102,7 @@ store.remove(notes_to_remove)
 ### Directly in your browser (no additional dependencies)
 To get a quick glance into a store, you can use the following command. It will start an http server and automatically open the relevant page in your web browser. The page contains an interactive table which shows the most relevant information of all notes in the store such as metrics and parameters.
 ```
-$ python -m hypernotes hyperstore.json --view
+$ python -m hypernotes hyperstore.json
 ```
 This only requires a modern web browser as well as an internet connection to load the JQuery and Datatables Javascript libraries.
 

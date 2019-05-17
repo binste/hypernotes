@@ -115,11 +115,22 @@ class HTMLResponder(BaseHTTPRequestHandler):
 
 
 def _parse_args(args):
-    parser = argparse.ArgumentParser("")
-    parser.add_argument("store_path", type=str)
-    parser.add_argument("--view", action="store_true")
-    parser.add_argument("--port", type=int, default=8080)
-    parser.add_argument("--no-browser", action="store_true")
+    parser = argparse.ArgumentParser(
+        "This command-line interface can be used to"
+        + " get a quick glance into a store.\n\nIt will start an http server and"
+        + " automatically open the relevant page in your web browser."
+        + " The page will contain an interactive table showing the most relevant"
+        + " information of all notes in the store such as metrics, parameters, etc."
+    )
+    parser.add_argument("store_path", type=str, help="path to json store")
+    parser.add_argument(
+        "--port", type=int, default=8080, help="port for http server (default=8080)"
+    )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="can be passed to prevent automatic opening of web browser",
+    )
 
     return parser.parse_args(args)
 
@@ -127,22 +138,19 @@ def _parse_args(args):
 def main(raw_args):
     global store
     args = _parse_args(raw_args)
-    if args.view:
-        store = Store(args.store_path)
+    store = Store(args.store_path)
 
-        try:
-            host = "localhost"
-            server = HTTPServer((host, args.port), HTMLResponder)
-            url = f"http://localhost:{args.port}"
-            print(
-                f"Started server on {url}. Server can be stopped with control+c / ctrl+c"
-            )
-            if not args.no_browser:
-                webbrowser.open_new_tab(url)
-            server.serve_forever()
-        except KeyboardInterrupt:
-            print("\nKeyboard interrupt recieved. Shutting down...")
-            server.socket.close()
+    try:
+        host = "localhost"
+        server = HTTPServer((host, args.port), HTMLResponder)
+        url = f"http://localhost:{args.port}"
+        print(f"Started server on {url}. Server can be stopped with control+c / ctrl+c")
+        if not args.no_browser:
+            webbrowser.open_new_tab(url)
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nKeyboard interrupt recieved. Shutting down...")
+        server.socket.close()
 
 
 if __name__ == "__main__":
