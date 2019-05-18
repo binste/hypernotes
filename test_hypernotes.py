@@ -136,6 +136,9 @@ class TestStore:
         assert len(loaded_notes) == 2
         assert loaded_notes[0] == note_2
         assert loaded_notes[1] == note
+        # Check if same key order is retrieved
+        assert list(loaded_notes[0].keys()) == list(note_2.keys())
+        assert list(loaded_notes[1].keys()) == list(note.keys())
         assert Note._end_datetime_key in note_2 and Note._end_datetime_key in note
 
     def test_update(self, tmp_path):
