@@ -6,6 +6,7 @@ import subprocess
 import sys
 import textwrap
 import types
+from abc import ABC, abstractmethod
 from datetime import datetime
 from json import JSONEncoder
 from unittest.mock import patch
@@ -198,15 +199,16 @@ class Note(dict):
         return r
 
 
-class BaseStore:
-    """The base store class. This class cannot be used directly and mostly acts
-    as a placeholder which defines the store interface. Inherit from this class if you
+class BaseStore(ABC):
+    """The base store class. This class cannot be used directly and acts
+    as a template which defines the store interface. Inherit from this class if you
     want to implement your own store class.
     """
 
     def __init__(self):
         pass
 
+    @abstractmethod
     def load(self, return_dataframe: bool = False):
         """Should return the full store as List[Note] with the most recent
         note first, or, if return_dataframe=True,
@@ -215,54 +217,53 @@ class BaseStore:
         This method is intended to be implemented by subclasses and so
         raises a NotImplementedError.
         """
-        raise NotImplementedError("Should be implemented by BaseStore subclasses")
-        loaded_notes = self._load()
-        if return_dataframe:
-            loaded_notes = self._to_pandas(loaded_notes)
-        return loaded_notes
+        pass
 
+    @abstractmethod
     def add(self, note: Note):
         """Should add an note to the persistent store implemented by the subclass
 
         This method is intended to be implemented by subclasses and so
         raises a NotImplementedError.
         """
-        raise NotImplementedError("Should be implemented by BaseStore subclasses")
-        note = self._prepare_note_for_storing(note)
+        pass
 
-    def _prepare_note_for_storing(self, note: Note) -> Note:
-        if note[note._end_datetime_key] is None:
-            note.end()
-        return copy.deepcopy(note)
 
-    def _to_pandas(self, notes: List[Note]):
-        try:
-            import pandas as pd
-        except ImportError:
-            raise ImportError(
-                "Pandas is not installed. You can install it via:\n"
-                "conda install pandas\n"
-                "or: pip install pandas"
-            )
-        return pd.DataFrame(copy.deepcopy(self._pandas_dict(notes)))
+def _prepare_note_for_storing(note: Note) -> Note:
+    if note[note._end_datetime_key] is None:
+        note.end()
+    return copy.deepcopy(note)
 
-    def _pandas_dict(self, notes: List[Note]) -> dict:
-        flat_dicts = _flatten_notes(notes)
-        all_keys = _all_keys_from_dicts(flat_dicts)
 
-        # Create basic structure
-        column_dict = {}  # type: Dict[str, list]
+def _to_pandas(notes: List[Note]):
+    try:
+        import pandas as pd
+    except ImportError:
+        raise ImportError(
+            "Pandas is not installed. You can install it via:\n"
+            "conda install pandas\n"
+            "or: pip install pandas"
+        )
+    return pd.DataFrame(copy.deepcopy(_pandas_dict(notes)))
+
+
+def _pandas_dict(notes: List[Note]) -> dict:
+    flat_dicts = _flatten_notes(notes)
+    all_keys = _all_keys_from_dicts(flat_dicts)
+
+    # Create basic structure
+    column_dict = {}  # type: Dict[str, list]
+    for column in all_keys:
+        column_dict[column] = []
+
+    # Fill structure with values
+    for d in flat_dicts:
         for column in all_keys:
-            column_dict[column] = []
+            column_dict[column].append(d.get(column))
 
-        # Fill structure with values
-        for d in flat_dicts:
-            for column in all_keys:
-                column_dict[column].append(d.get(column))
-
-        key_order = _key_order(all_keys)
-        ordered_dict = {k: column_dict[k] for k in key_order}
-        return ordered_dict
+    key_order = _key_order(all_keys)
+    ordered_dict = {k: column_dict[k] for k in key_order}
+    return ordered_dict
 
 
 def _flatten_notes(notes: Sequence[Note]) -> List[Dict[str, Any]]:
@@ -363,7 +364,7 @@ class Store(BaseStore):
         """
         loaded_notes = self._load()
         if return_dataframe:
-            loaded_notes = self._to_pandas(loaded_notes)
+            loaded_notes = _to_pandas(loaded_notes)
         return loaded_notes
 
     def _load(self) -> List[Note]:
@@ -397,7 +398,7 @@ class Store(BaseStore):
                 f"The identifier for the note '{note.identifier}' already exists in the store."
                 + " The note was not added."
             )
-        note = self._prepare_note_for_storing(note)
+        note = _prepare_note_for_storing(note)
         all_notes.append(note)
         self._save_notes(all_notes)
 

@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import requests
 
-from hypernotes import BaseStore, Note, Store
+from hypernotes import Note, Store, _pandas_dict
 from hypernotes.__main__ import _format_notes_as_html, main, _parse_args
 
 
@@ -70,35 +70,6 @@ class TestNote:
         text = "Descriptive text about the note"
         note = Note(text=text)
         assert note.text == text
-
-
-class TestBaseStore:
-    def test_raise_notimplementederrors(self):
-        store = BaseStore()
-        note = Note()
-
-        with pytest.raises(NotImplementedError):
-            store.load()
-        with pytest.raises(NotImplementedError):
-            store.add(note)
-
-    def test_to_pandas_dict(self):
-        store = BaseStore()
-        note_1 = Note()
-        recall_value = 0.2
-        note_1.metrics["recall"] = recall_value
-        note_1.end()
-        note_2 = Note()
-        impute_missings_value = True
-        note_2.parameters["impute_missings"] = impute_missings_value
-        note_2.end()
-
-        pandas_dict = store._pandas_dict([note_1, note_2])
-        assert pandas_dict["metrics.recall"] == [recall_value, None]
-        assert pandas_dict["parameters.impute_missings"] == [
-            None,
-            impute_missings_value,
-        ]
 
 
 class TestStore:
@@ -221,3 +192,18 @@ class TestMain:
         assert expected_test_value in html
         assert "<!DOCTYPE html>" in html
         assert "datatables" in html.lower()
+
+
+def test_to_pandas_dict():
+    note_1 = Note()
+    recall_value = 0.2
+    note_1.metrics["recall"] = recall_value
+    note_1.end()
+    note_2 = Note()
+    impute_missings_value = True
+    note_2.parameters["impute_missings"] = impute_missings_value
+    note_2.end()
+
+    pandas_dict = _pandas_dict([note_1, note_2])
+    assert pandas_dict["metrics.recall"] == [recall_value, None]
+    assert pandas_dict["parameters.impute_missings"] == [None, impute_missings_value]
