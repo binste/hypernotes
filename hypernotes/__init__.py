@@ -352,7 +352,10 @@ class Store(BaseStore):
         return self._sort_notes(notes)
 
     def add(self, note: Note) -> None:
-        """Adds the given note to the .json file of the store
+        """Adds the given note to the .json file of the store.
+
+        Before storing the note, the .end method of it is called, if
+        not already done previously.
 
         Parameters
         ----------
