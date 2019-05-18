@@ -53,7 +53,7 @@ note.info["important_stuff"] = "something noteworthy"
 # train_recall, train_precision test_recall, test_precision = train_and_evaluate_model(
 #                                              parameters=note.params,
 #                                              feature_names=note.features,
-#                                              label_name=note.label)
+#                                              target_name=note.target)
 # ...
 
 # Add your calculated evaluation metrics
