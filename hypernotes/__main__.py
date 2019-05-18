@@ -9,48 +9,30 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Dict, List, Set, Union, Any
 
-from hypernotes import Store, Note
+from hypernotes import Store, Note, _flatten_notes, _all_keys_from_dicts, _key_order
 
 
 def _format_notes_as_html(notes: List[Note]):
-    template_note = notes[0]
-    general_columns = [
-        template_note._start_datetime_key,
-        template_note._end_datetime_key,
-        template_note._text_key,
-    ]
-    parameters = set()  # type: Set[str]
-    metrics = set()  # type: Set[str]
+    flat_dicts = _flatten_notes(notes)
+    all_keys = _all_keys_from_dicts(flat_dicts)
 
-    for note in notes:
-        parameters.update(note.parameters)
-        metrics.update(note.metrics)
-
-    all_columns = (
-        general_columns
-        + sorted([f"metrics.{x}" for x in metrics])
-        + sorted([f"parameters.{x}" for x in parameters])
-    )
+    key_order = _key_order(all_keys, additional_keys_subset=["metrics", "parameters"])
 
     data = []  # type: List[dict]
-    for note in notes:
+    for d in flat_dicts:
         row = {}  # type: dict
-        for col in general_columns:
-            value = note.get(col, "")
+        for col in key_order:
+            value = d.get(col, "")
             if isinstance(value, datetime):
                 value = value.isoformat()
             row[col] = value
-        for col in metrics:
-            row[f"metrics.{col}"] = note.metrics.get(col, "")
-        for col in parameters:
-            row[f"parameters.{col}"] = note.parameters.get(col, "")
         data.append(row)
 
     js_var_data = json.dumps(data)
     # Points in column names need to be escaped for the 'data' attribute in datatables
-    escaped_columns = [col.replace(".", "\\\\.") for col in all_columns]
+    escaped_columns = [col.replace(".", "\\\\.") for col in key_order]
     js_columns = "[" + ", ".join(f'{{data: "{col}"}}' for col in escaped_columns) + "]"
-    js_table_tr = "<tr>" + "".join(f"<th>{col}</th>" for col in all_columns) + "</tr>"
+    js_table_tr = "<tr>" + "".join(f"<th>{col}</th>" for col in key_order) + "</tr>"
 
     html_start = textwrap.dedent(
         """\

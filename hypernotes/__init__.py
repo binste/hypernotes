@@ -247,62 +247,82 @@ class BaseStore:
         return pd.DataFrame(copy.deepcopy(self._pandas_dict(notes)))
 
     def _pandas_dict(self, notes: List[Note]) -> dict:
-        flat_dicts = []
-        for note in notes:
-            flat_dicts.append(self._flatten_dict(dict(note)))
+        flat_dicts = _flatten_notes(notes)
+        all_keys = _all_keys_from_dicts(flat_dicts)
 
+        # Create basic structure
         column_dict = {}  # type: Dict[str, list]
-        all_column_names = set([col for d in flat_dicts for col, _ in d.items()])
-        for column in all_column_names:
+        for column in all_keys:
             column_dict[column] = []
 
+        # Fill structure with values
         for d in flat_dicts:
-            for column in all_column_names:
+            for column in all_keys:
                 column_dict[column].append(d.get(column))
 
-        key_order = (
-            [
-                Note._start_datetime_key,
-                Note._end_datetime_key,
-                Note._text_key,
-                Note._model_key,
-            ]
-            + self._filter_sequence_if_startswith(
-                column_dict.keys(), startswith=Note._metrics_key
-            )
-            + self._filter_sequence_if_startswith(
-                column_dict.keys(), startswith=Note._parameters_key
-            )
-            + self._filter_sequence_if_startswith(
-                column_dict.keys(), startswith=Note._features_key
-            )
-            + [Note._target_key]
-            + self._filter_sequence_if_startswith(
-                column_dict.keys(), startswith=Note._git_key
-            )
-        )
-        key_order.extend(key for key in column_dict.keys() if key not in key_order)
+        key_order = _key_order(all_keys)
         ordered_dict = {k: column_dict[k] for k in key_order}
         return ordered_dict
 
-    def _flatten_dict(self, d: dict, parent_key: str = "", sep: str = ".") -> dict:
-        """Flattens a dictionary by concatenating key names
 
-        Taken from https://stackoverflow.com/a/6027615
-        """
-        items = []  # type: List[tuple]
-        for k, v in d.items():
-            new_key = parent_key + sep + k if parent_key else k
-            if isinstance(v, dict):
-                items.extend(self._flatten_dict(v, new_key, sep=sep).items())
-            else:
-                items.append((new_key, v))
-        return dict(items)
+def _flatten_notes(notes: Sequence[Note]) -> List[Dict[str, Any]]:
+    flat_dicts = []
+    for note in notes:
+        flat_dicts.append(_flatten_dict(dict(note)))
+    return flat_dicts
 
-    def _filter_sequence_if_startswith(
-        self, seq: Sequence[str], startswith: str
-    ) -> List[str]:
-        return [x for x in seq if x.startswith(startswith)]
+
+def _all_keys_from_dicts(ds: Sequence[Dict[str, Any]]) -> List[str]:
+    return list(set([col for d in ds for col, _ in d.items()]))
+
+
+def _key_order(
+    keys: Sequence[str], additional_keys_subset: Optional[Sequence[str]] = None
+) -> List[str]:
+    """start_datetime, end_datetime, text, and model are always first.
+    Afterwards, either all keys are added in orther metrics, parameters,
+    features, git, and others, or only the passed in categories
+    from additional_keys_subset. additional_keys_subset can hereby just be
+    the start of the strings, e.g. ["metrics", "parameters]"
+    """
+    key_order = [
+        Note._start_datetime_key,
+        Note._end_datetime_key,
+        Note._text_key,
+        Note._model_key,
+    ]
+    if additional_keys_subset is None:
+        key_order += (
+            _filter_sequence_if_startswith(keys, startswith=Note._metrics_key)
+            + _filter_sequence_if_startswith(keys, startswith=Note._parameters_key)
+            + _filter_sequence_if_startswith(keys, startswith=Note._features_key)
+            + [Note._target_key]
+            + _filter_sequence_if_startswith(keys, startswith=Note._git_key)
+        )
+        key_order.extend(sorted([k for k in keys if k not in key_order]))
+    else:
+        for k in additional_keys_subset:
+            key_order += _filter_sequence_if_startswith(keys, startswith=k)
+    return key_order
+
+
+def _flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
+    """Flattens a dictionary by concatenating key names
+
+    Taken from https://stackoverflow.com/a/6027615
+    """
+    items = []  # type: List[tuple]
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, dict):
+            items.extend(_flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+
+def _filter_sequence_if_startswith(seq: Sequence[str], startswith: str) -> List[str]:
+    return sorted([x for x in seq if x.startswith(startswith)])
 
 
 class Store(BaseStore):
