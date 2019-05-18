@@ -104,7 +104,7 @@ To get a quick glance into a store, you can use the following command. It will s
 ```
 $ python -m hypernotes hyperstore.json
 ```
-This only requires a modern web browser as well as an internet connection to load the JQuery and Datatables Javascript libraries.
+This only requires a modern web browser as well as an internet connection to load a view javascript libraries and css files.
 
 ### pandas and QGrid
 Another useful option might be to load the store as a pandas dataframe (see [Load notes](#load-notes)) and then use [Qgrid](https://github.com/quantopian/qgrid) in a Jupyter notebook.

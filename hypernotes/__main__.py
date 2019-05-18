@@ -15,7 +15,6 @@ from hypernotes import Store, Note, _flatten_notes, _all_keys_from_dicts, _key_o
 def _format_notes_as_html(notes: List[Note]):
     flat_dicts = _flatten_notes(notes)
     all_keys = _all_keys_from_dicts(flat_dicts)
-
     key_order = _key_order(all_keys, additional_keys_subset=["metrics", "parameters"])
 
     data = []  # type: List[dict]
@@ -34,21 +33,58 @@ def _format_notes_as_html(notes: List[Note]):
     js_columns = "[" + ", ".join(f'{{data: "{col}"}}' for col in escaped_columns) + "]"
     js_table_tr = "<tr>" + "".join(f"<th>{col}</th>" for col in key_order) + "</tr>"
 
-    html_start = textwrap.dedent(
+    html_start = _html_start()
+    html_header = _html_header(js_var_data, js_columns)
+    html_body = _html_body(js_table_tr)
+    html_end = "</html>"
+
+    return html_start + html_header + html_body + html_end
+
+
+def _html_start() -> str:
+    return textwrap.dedent(
         """\
-        <!DOCTYPE html>
-        <html>
-        """
+            <!DOCTYPE html>
+            <html>
+            """
     )
 
-    html_header = textwrap.dedent(
-        """\
-        <head>
-            <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 
-            <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
-            <script type="text/javascript" charset="utf8"
-                src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+def _html_header(js_var_data: str, js_columns: str) -> str:
+    return textwrap.dedent(
+        f"""\
+        <head>
+            <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css">
+            <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">
+
+            <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+            <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+            <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+
+            <script type="text/javascript" class="init">
+                        var data = {js_var_data}
+                        $(document).ready(function () {{
+                            $('#store_table').DataTable({{
+                                data: data,
+                                columns: {js_columns},
+                                scrollX: true,
+                                scrollY: '60vh',
+                                scrollCollapse: true,
+                            }}
+
+                            );
+                        }});
+
+                    </script>
+
+            <style type="text/css" class="init">
+                div.dataTables_wrapper {{
+                    width: 100%;
+                    margin: 0 auto;
+                }}
+                th {{ font-size: 14px; }}
+                td {{ font-size: 13px; }}
+            </style>
 
             <meta charset=utf-8 />
             <title>Store - DataTable</title>
@@ -56,35 +92,27 @@ def _format_notes_as_html(notes: List[Note]):
         """
     )
 
-    html_body = textwrap.dedent(
+
+def _html_body(js_table_tr: str) -> str:
+    return textwrap.dedent(
         f"""\
         <body>
+            <div class="page-header text-center">
+                <h1>Store Content</h1>
+            </div>
+            <hr>
             <div class="container">
-                <script type="text/javascript" class="init">
-                    var data = {js_var_data}
-                    $(document).ready(function () {{
-                        $('#store_table').DataTable({{
-                            data: data, columns: {js_columns}
-                        }}
-
-                        );
-                    }});
-
-                </script>
-                <table id="store_table" class="display nowrap" width="100%">
-                    <thead>
-                        {js_table_tr}
-                    </thead>
-                </table>
-
+                <div class="row">
+                    <table id="store_table" class="table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            {js_table_tr}
+                        </thead>
+                    </table>
+                </div>
             </div>
         </body>
         """
     )
-
-    html_end = "</html>"
-
-    return html_start + html_header + html_body + html_end
 
 
 class HTMLResponder(BaseHTTPRequestHandler):
