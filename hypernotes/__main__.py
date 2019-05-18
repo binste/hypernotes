@@ -134,6 +134,12 @@ def _parse_args(args):
     )
     parser.add_argument("store_path", type=str, help="path to json store")
     parser.add_argument(
+        "--ip",
+        type=str,
+        default="localhost",
+        help="ip to use for hosting the http server (default=localhost)",
+    )
+    parser.add_argument(
         "--port", type=int, default=8080, help="port for http server (default=8080)"
     )
     parser.add_argument(
@@ -151,9 +157,8 @@ def main(raw_args):
     store = Store(args.store_path)
 
     try:
-        host = "localhost"
-        server = HTTPServer((host, args.port), HTMLResponder)
-        url = f"http://localhost:{args.port}"
+        server = HTTPServer((args.ip, args.port), HTMLResponder)
+        url = f"http://{args.ip}:{args.port}"
         print(f"Started server on {url}. Server can be stopped with control+c / ctrl+c")
         if not args.no_browser:
             webbrowser.open_new_tab(url)
