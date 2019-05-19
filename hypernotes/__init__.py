@@ -15,7 +15,7 @@ from pprint import pformat
 from typing import Any, Dict, List, Optional, Set, Union, Sequence, DefaultDict, Tuple
 
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 
 class Note(dict):
