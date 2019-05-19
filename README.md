@@ -100,11 +100,13 @@ store.remove(notes_to_remove)
 
 ## View content of a store
 ### Directly in your browser (no additional dependencies)
-To get a quick glance into a store, you can use the following command. It will start an http server and automatically open the relevant page in your web browser. The page contains an interactive table which shows the most relevant information of all notes in the store such as metrics and parameters.
+To get a quick glance into a store, you can use the package from the command line. It will start an http server and automatically open the relevant page in your web browser. The page contains an interactive table which shows the most relevant information of all notes in the store such as metrics and parameters.
 ```
 $ python -m hypernotes hyperstore.json
 ```
 This only requires a modern web browser as well as an internet connection to load a view javascript libraries and css files.
+
+To see all available options pass the `--help` argument.
 
 ### pandas and QGrid
 Another useful option might be to load the store as a pandas dataframe (see [Load notes](#load-notes)) and then use [Qgrid](https://github.com/quantopian/qgrid) in a Jupyter notebook.
