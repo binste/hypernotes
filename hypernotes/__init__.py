@@ -15,7 +15,8 @@ from pprint import pformat
 from typing import Any, Dict, List, Optional, Set, Union, Sequence, DefaultDict, Tuple
 
 
-__version__ = "0.3.0"
+__version__ = "1.0.0"
+DATETIME_STRING_FORMAT = "%Y-%m-%dT%H-%M-%S"
 
 
 class Note(dict):
@@ -86,12 +87,15 @@ class Note(dict):
         return sys.executable
 
     def _start(self) -> None:
-        self[self._start_datetime_key] = datetime.now()
+        self[self._start_datetime_key] = self._current_datetime()
         self._add_git_info()
 
     def end(self) -> None:
         """Adds the current datetime as 'end_datetime' to the note"""
-        self[self._end_datetime_key] = datetime.now()
+        self[self._end_datetime_key] = self._current_datetime()
+
+    def _current_datetime(self) -> datetime:
+        return datetime.now().replace(microsecond=0)
 
     def _add_git_info(self) -> None:
         if self._is_in_git_repo():
@@ -522,7 +526,7 @@ class Store(BaseStore):
 
 class DatetimeJSONEncoder(JSONEncoder):
     """Encodes datetime objects as a dictionary
-    with key "_isoformat" and the isoformat representation
+    with key "_datetime" and a string representation
     of the datetime as value.
 
     Idea for this encoder class comes from
@@ -531,7 +535,7 @@ class DatetimeJSONEncoder(JSONEncoder):
 
     def default(self, obj):
         if isinstance(obj, datetime):
-            return {"_isoformat": _format_datetime(obj)}
+            return {"_datetime": _format_datetime(obj)}
         return super().default(obj)
 
 
@@ -542,18 +546,18 @@ def _deserialize_datetime(obj):
     Idea for this function comes from
     https://stackoverflow.com/a/52838324
     """
-    _isoformat = obj.get("_isoformat")
-    if _isoformat is not None:
-        return _parse_datetime(_isoformat)
+    _datetime = obj.get("_datetime")
+    if _datetime is not None:
+        return _parse_datetime(_datetime)
     return obj
 
 
 def _format_datetime(dt: datetime) -> str:
-    return dt.isoformat()
+    return dt.strftime(DATETIME_STRING_FORMAT)
 
 
 def _parse_datetime(dt_str: str) -> datetime:
-    return datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S.%f")
+    return datetime.strptime(dt_str, DATETIME_STRING_FORMAT)
 
 
 def _convert_to_path(path: Union[str, Path]) -> Path:
