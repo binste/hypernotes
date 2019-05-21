@@ -188,7 +188,7 @@ class Note(dict):
 
     @info.setter
     def info(self, value):
-        self[self._info_key] = info
+        self[self._info_key] = value
 
     def __repr__(self) -> str:
         # Code and idea for patching sorted to prevent sorting by
