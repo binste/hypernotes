@@ -200,7 +200,7 @@ store.remove(notes_to_remove)
 
 ## View content of a store
 ### Directly in your browser (no additional dependencies)
-To get a quick glance into a store, you can use the package from the command line. It will start an http server and automatically open the relevant page in your web browser. The page contains an interactive table which shows the most relevant information of all notes in the store such as metrics and parameters.
+To get a quick glance into a store, you can use the package from the command line. It will start an http server and automatically open the relevant page in your web browser. The page contains an interactive table which shows the most relevant information of all notes in the store such as metrics and parameters. The table is similar in style to the one shown in the [Load notes](#load-notes) section.
 ```
 $ python -m hypernotes hyperstore.json
 ```
