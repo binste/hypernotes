@@ -9,7 +9,14 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Dict, List, Set, Union, Any
 
-from hypernotes import Store, Note, _flatten_notes, _all_keys_from_dicts, _key_order
+from hypernotes import (
+    Store,
+    Note,
+    _flatten_notes,
+    _all_keys_from_dicts,
+    _key_order,
+    _format_datetime,
+)
 
 
 def _format_notes_as_html(notes: List[Note]):
@@ -23,7 +30,7 @@ def _format_notes_as_html(notes: List[Note]):
         for col in key_order:
             value = d.get(col, "")
             if isinstance(value, datetime):
-                value = value.isoformat()
+                value = _format_datetime(value)
             row[col] = value
         data.append(row)
 
