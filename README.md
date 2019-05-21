@@ -17,14 +17,34 @@ hypernotes implements a *Note* and a *Store* class. A *Note* is a small wrapper 
 * information about the current state of your Git repository (if there is one) such as the last commit, current branch, etc.,
 * start (upon initialization) and end datetime (call note.end() or add to store)
 
-and it provides
+and it provides:
 
-* a useful default dictionary structure (print a note instance and you will see what's inside)
-* access to the most commonly used dictionary keys as attributes for better auto-completion support and readability (see below, for example `note.metrics`)
+* a useful default dictionary structure
+* access to the most commonly used dictionary keys as attributes for better auto-completion support and readability (for example `note.parameters`, `note.features`)
+
+If you print a note, you can see what's inside. A note right after initialization would look like this:
+```python
+Note(content={'text': '',
+ 'model': None,
+ 'parameters': {},
+ 'features': {'identifier': [],
+              'binary': [],
+              'categorical': [],
+              'numerical': []},
+ 'target': None,
+ 'metrics': {},
+ 'info': {},
+ 'start_datetime': datetime.datetime(2019, 5, 21, 11, 3, 20),
+ 'end_datetime': None,
+ 'python_path': 'C:/example_path/python.exe',
+ 'git': {'repo_name': 'C:/path_to_your_repo',
+         'branch': 'master',
+         'commit': '6bbdf31'}}
+```
 
 The notes are then saved with a *Store* instance, which uses a json file. Due to this, you should only add json serializable objects + *datetime.datetime* instances to a *Note*.
 
-A note is uniquely identifiable by its `identifier` attribute, which is the start datetime in ISO format.
+A note is uniquely identifiable by its `identifier` attribute, which is the start datetime as a string (e.g. `"2019-05-21T11-03-20"`).
 
 ## Add a note
 ```python
@@ -70,6 +90,7 @@ A Store instance provides the `load` method, which can be used to retrieve the w
 notes = store.load()
 most_recent_note = notes[0]
 print(most_recent_note.identifier)
+# E.g. 2019-05-21T11-03-20
 ```
 
 If you have [pandas](https://github.com/pandas-dev/pandas) installed, you can use the `return_dataframe` argument to return a pandas dataframe.
