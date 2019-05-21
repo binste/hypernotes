@@ -22,7 +22,7 @@ and it provides:
 * a useful default dictionary structure
 * access to the most commonly used dictionary keys as attributes for better auto-completion support and readability (for example `note.parameters`, `note.features`)
 
-If you print a note, you can see what's inside. A note right after initialization would look like this:
+If you print a note, you can see what's inside. A note right after initialization looks like this:
 ```python
 Note(content={'text': '',
  'model': None,
