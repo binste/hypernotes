@@ -71,6 +71,33 @@ class TestNote:
         note = Note(text=text)
         assert note.text == text
 
+    def test_properties_and_setters(self):
+        note = Note()
+        assert isinstance(note.identifier, str)
+        text_value = "test"
+        model_value = "model"
+        metrics_value = "metrics"
+        parameters_value = "parameters"
+        features_value = "features"
+        target_value = "target"
+        info_value = "info"
+
+        note.text = text_value
+        note.model = model_value
+        note.metrics = metrics_value
+        note.parameters = parameters_value
+        note.features = features_value
+        note.target = target_value
+        note.info = info_value
+
+        assert note.text == text_value
+        assert note.model == model_value
+        assert note.metrics == metrics_value
+        assert note.parameters == parameters_value
+        assert note.features == features_value
+        assert note.target == target_value
+        assert note.info == info_value
+
 
 class TestStore:
     def test_roundtrip(self, tmp_path):
