@@ -98,6 +98,85 @@ If you have [pandas](https://github.com/pandas-dev/pandas) installed, you can us
 notes_df = store.load(return_dataframe=True)
 notes_df.head()
 ```
+Example of a returned pandas dataframe:
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>start_datetime</th>
+      <th>end_datetime</th>
+      <th>text</th>
+      <th>model</th>
+      <th>metrics.test.precision</th>
+      <th>metrics.test.recall</th>
+      <th>metrics.train.precision</th>
+      <th>metrics.train.recall</th>
+      <th>parameters.min_sample_split</th>
+      <th>parameters.num_estimators</th>
+      <th>parameters.sample_weight</th>
+      <th>features.binary</th>
+      <th>features.categorical</th>
+      <th>features.identifier</th>
+      <th>features.numerical</th>
+      <th>target</th>
+      <th>git.branch</th>
+      <th>git.commit</th>
+      <th>git.repo_name</th>
+      <th>info.important_stuff</th>
+      <th>python_path</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2019-05-21 18:44:48</td>
+      <td>2019-05-21 18:44:48</td>
+      <td>Useful description</td>
+      <td>randomforest</td>
+      <td>0.29</td>
+      <td>0.29</td>
+      <td>0.40</td>
+      <td>0.50</td>
+      <td>7</td>
+      <td>150</td>
+      <td>None</td>
+      <td>[bool1]</td>
+      <td>[cat1, cat2]</td>
+      <td>[id]</td>
+      <td>[num1]</td>
+      <td>target</td>
+      <td>master</td>
+      <td>5e098ab</td>
+      <td>C:/path_to_your_repo</td>
+      <td>something noteworthy</td>
+      <td>C:/example_path/python.exe</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2019-05-21 18:44:47</td>
+      <td>2019-05-21 18:44:47</td>
+      <td>Useful description</td>
+      <td>randomforest</td>
+      <td>0.82</td>
+      <td>0.29</td>
+      <td>0.91</td>
+      <td>0.98</td>
+      <td>7</td>
+      <td>100</td>
+      <td>balanced</td>
+      <td>[bool1]</td>
+      <td>[cat1, cat2]</td>
+      <td>[id]</td>
+      <td>[num1]</td>
+      <td>target</td>
+      <td>master</td>
+      <td>5e098ab</td>
+      <td>C:/path_to_your_repo</td>
+      <td>something noteworthy</td>
+      <td>C:/example_path/python.exe</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Update notes
 If you want to update notes, you can do this either directly in the json file containing the notes, or load the notes as described above, change the relevant ones, and pass them to the `update` method.

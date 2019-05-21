@@ -114,6 +114,7 @@ class TestStore:
         note.metrics["recall"] = 0.2
         note.metrics["accuracy"] = 0.8
 
+        time.sleep(1)
         note_2 = Note("Desc 2")
         note.features["binary"] = ["bool"]
 
@@ -144,6 +145,7 @@ class TestStore:
         original_value = "randomforest"
         note.model = original_value
 
+        time.sleep(1)
         note_2 = Note("note which should be kept as is")
         note_2.model = "fancy_model"
 
@@ -166,6 +168,7 @@ class TestStore:
 
     def test_remove(self, tmp_path):
         note_1 = Note("Note 1")
+        time.sleep(1)
         note_2 = Note("Note 2")
 
         store = Store(tmp_path / "test_store.json")
@@ -197,6 +200,7 @@ class TestMain:
         note_1 = Note("Note 1")
         expected_test_value = "expected_test_value"
         note_1.parameters["find_this_value"] = expected_test_value
+        time.sleep(1)
         note_2 = Note("Note 2")
         store_path = tmp_path / "test_store.json"
         store = Store(store_path)
