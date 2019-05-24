@@ -507,14 +507,14 @@ class Store(BaseStore):
 
     @staticmethod
     def _json_load(path: Path) -> List[dict]:
-        with path.open("r") as f:
+        with path.open("r", encoding="utf-8") as f:
             content = json.load(f, object_hook=_deserialize_datetime)
         return content
 
     @staticmethod
     def _json_dump(obj: List[dict], path: Path) -> None:
         json_str = json.dumps(obj, cls=DatetimeJSONEncoder)
-        with path.open("w") as f:
+        with path.open("w", encoding="utf-8") as f:
             f.write(json_str)
 
     def __repr__(self) -> str:
