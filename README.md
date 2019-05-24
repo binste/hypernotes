@@ -42,7 +42,7 @@ Note(content={'text': '',
          'commit': '6bbdf31'}}
 ```
 
-The notes are then saved with a *Store* instance, which uses a json file. Due to this, you should only add json serializable objects + *datetime.datetime* instances to a *Note*.
+The notes are then saved with a *Store* instance, which uses a json file. Due to this, you should only add [json-serializable objects](https://docs.python.org/3/library/json.html#py-to-json-table) + *datetime.datetime* instances to a *Note*.
 
 A note is uniquely identifiable by its `identifier` attribute, which is the start datetime as a string (e.g. `"2019-05-21T11-03-20"`).
 
