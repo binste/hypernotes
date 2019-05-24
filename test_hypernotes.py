@@ -182,6 +182,22 @@ class TestStore:
         loaded_notes_again = store.load()
         assert note_1 not in loaded_notes_again and note_2 in loaded_notes
 
+    def test_writing_invalid_note(self, tmp_path):
+        invalid_note = Note("Invalid note")
+        invalid_note.info["invalid_object"] = InvalidObject()
+        time.sleep(1)
+        valid_note = Note("Valid note")
+        store = Store(tmp_path / "test_store.json")
+
+        store.add(valid_note)
+        with pytest.raises(TypeError):
+            store.add(invalid_note)
+
+        # Make sure that store is still valid json and only contains valid note
+        notes = store.load()
+        len(notes) == 1
+        notes[0] == valid_note
+
 
 class TestMain:
     def test_html_format(self):
@@ -238,3 +254,7 @@ def test_to_pandas_dict():
     pandas_dict = _pandas_dict([note_1, note_2])
     assert pandas_dict["metrics.recall"] == [recall_value, None]
     assert pandas_dict["parameters.impute_missings"] == [None, impute_missings_value]
+
+
+class InvalidObject:
+    pass

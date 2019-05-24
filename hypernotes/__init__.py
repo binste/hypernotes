@@ -513,8 +513,9 @@ class Store(BaseStore):
 
     @staticmethod
     def _json_dump(obj: List[dict], path: Path) -> None:
+        json_str = json.dumps(obj, cls=DatetimeJSONEncoder)
         with path.open("w") as f:
-            json.dump(obj, f, cls=DatetimeJSONEncoder)
+            f.write(json_str)
 
     def __repr__(self) -> str:
         return f"Store('{self.path}')"
