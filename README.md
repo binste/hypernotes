@@ -129,9 +129,9 @@ Example of a returned pandas dataframe:
   <tbody>
     <tr>
       <th>0</th>
-      <td>2019-05-21 18:44:48</td>
-      <td>2019-05-21 18:44:48</td>
-      <td>Useful description</td>
+      <td>2019-05-21 16:44:48</td>
+      <td>2019-05-21 17:05:21</td>
+      <td>Another useful description</td>
       <td>randomforest</td>
       <td>0.29</td>
       <td>0.29</td>
@@ -154,8 +154,8 @@ Example of a returned pandas dataframe:
     </tr>
     <tr>
       <th>1</th>
-      <td>2019-05-21 18:44:47</td>
-      <td>2019-05-21 18:44:47</td>
+      <td>2019-05-21 16:12:53</td>
+      <td>2019-05-21 16:30:16</td>
       <td>Useful description</td>
       <td>randomforest</td>
       <td>0.82</td>
