@@ -54,7 +54,7 @@ class Note(dict):
             dictionaries from a Store. If content is passed, no additional information
             is added on instantiation of the class (e.g. no start datetime,
             identifier, ...), meaning that these attributes already need to be
-            present in the apssed in dictionary.
+            present in the passed in dictionary.
         """
         if content is not None:
             super().__init__(content)
