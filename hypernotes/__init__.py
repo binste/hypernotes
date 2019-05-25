@@ -70,16 +70,16 @@ class Note(dict):
 
     def _set_up_initial_structure(self) -> None:
         self.model = None
-        self.parameters = {}
+        self.parameters = {}  # type: dict
         self.features = self._initial_features_structure()
         self.target = None
-        self.metrics = {}
-        self.info = {}
+        self.metrics = {}  # type: dict
+        self.info = {}  # type: dict
         self.start_datetime = None
         self.end_datetime = None
         self._set_identifier()
         self.python_path = self._python_executable_path()
-        self.git = {}
+        self.git = {}  # type: dict
 
     def _initial_features_structure(self) -> dict:
         """This method can easily be overwritten to return a different
@@ -137,7 +137,7 @@ class Note(dict):
             return True
 
     @classmethod
-    def from_note(cls, note: "Note"):
+    def from_note(cls, note: "Note") -> "Note":
         """Creates a new note from an existing one, taking over its content
         but setting a new start datetime and identifier.
 
@@ -169,7 +169,7 @@ class Note(dict):
         return self[self._identifier_key]
 
     @identifier.setter
-    def identifier(self, value):
+    def identifier(self, value: str):
         self[self._identifier_key] = value
 
     @property
@@ -177,87 +177,87 @@ class Note(dict):
         return self[self._text_key]
 
     @text.setter
-    def text(self, value):
+    def text(self, value: str):
         self[self._text_key] = value
 
     @property
-    def model(self):
+    def model(self) -> str:
         return self[self._model_key]
 
     @model.setter
-    def model(self, value):
+    def model(self, value: str):
         self[self._model_key] = value
 
     @property
-    def metrics(self):
+    def metrics(self) -> dict:
         return self[self._metrics_key]
 
     @metrics.setter
-    def metrics(self, value):
+    def metrics(self, value: dict):
         self[self._metrics_key] = value
 
     @property
-    def parameters(self):
+    def parameters(self) -> dict:
         return self[self._parameters_key]
 
     @parameters.setter
-    def parameters(self, value):
+    def parameters(self, value: dict):
         self[self._parameters_key] = value
 
     @property
-    def features(self):
+    def features(self) -> dict:
         return self[self._features_key]
 
     @features.setter
-    def features(self, value):
+    def features(self, value: dict):
         self[self._features_key] = value
 
     @property
-    def target(self):
+    def target(self) -> str:
         return self[self._target_key]
 
     @target.setter
-    def target(self, value):
+    def target(self, value: str):
         self[self._target_key] = value
 
     @property
-    def info(self):
+    def info(self) -> dict:
         return self[self._info_key]
 
     @info.setter
-    def info(self, value):
+    def info(self, value: dict):
         self[self._info_key] = value
 
     @property
-    def start_datetime(self):
+    def start_datetime(self) -> datetime:
         return self[self._start_datetime_key]
 
     @start_datetime.setter
-    def start_datetime(self, value):
+    def start_datetime(self, value: datetime):
         self[self._start_datetime_key] = value
 
     @property
-    def end_datetime(self):
+    def end_datetime(self) -> datetime:
         return self[self._end_datetime_key]
 
     @end_datetime.setter
-    def end_datetime(self, value):
+    def end_datetime(self, value: datetime):
         self[self._end_datetime_key] = value
 
     @property
-    def python_path(self):
+    def python_path(self) -> str:
         return self[self._python_path_key]
 
     @python_path.setter
-    def python_path(self, value):
+    def python_path(self, value: str):
         self[self._python_path_key] = value
 
     @property
-    def git(self):
+    def git(self) -> dict:
         return self[self._git_key]
 
     @git.setter
-    def git(self, value):
+    def git(self, value: dict):
         self[self._git_key] = value
 
     def __repr__(self) -> str:
