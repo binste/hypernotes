@@ -47,7 +47,7 @@ The notes are then saved with a *Store* instance, which uses a json file. Due to
 
 A note is uniquely identifiable by its `identifier` attribute.
 
-## Add a note
+## Create a note and add to a store
 ```python
 from hypernotes import Note, Store
 
