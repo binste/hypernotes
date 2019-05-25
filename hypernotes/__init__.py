@@ -368,7 +368,10 @@ def _key_order(
             + _filter_sequence_if_startswith(keys, startswith=Note._parameters_key)
             + _filter_sequence_if_startswith(keys, startswith=Note._features_key)
             + [Note._target_key]
+            + _filter_sequence_if_startswith(keys, startswith=Note._info_key)
             + _filter_sequence_if_startswith(keys, startswith=Note._git_key)
+            + [Note._python_path_key]
+            + [Note._identifier_key]
         )
         key_order.extend(sorted([k for k in keys if k not in key_order]))
     else:
