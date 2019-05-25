@@ -26,6 +26,7 @@ class TestNote:
                 note._start_datetime_key,
                 note._end_datetime_key,
                 note._python_path_key,
+                note._identifier_key,
             )
         )
         assert isinstance(note[note._start_datetime_key], datetime)
@@ -98,6 +99,17 @@ class TestNote:
         assert note.target == target_value
         assert note.info == info_value
 
+    def test_set_identifier(self):
+        note = Note()
+        old_identifier = note.identifier
+
+        note._set_identifier()
+
+        assert isinstance(old_identifier, str)
+        assert isinstance(note.identifier, str)
+
+        assert old_identifier != note.identifier
+
 
 class TestStore:
     def test_roundtrip(self, tmp_path):
@@ -114,13 +126,20 @@ class TestStore:
         note.metrics["recall"] = 0.2
         note.metrics["accuracy"] = 0.8
 
+        # Delay creation to make sure that it has a different start datetime
+        # Used further below to check if returned order of store is actually based on
+        # end datetime instead of start datetime
         time.sleep(1)
         note_2 = Note("Desc 2")
         note.features["binary"] = ["bool"]
 
         store = Store(tmp_path / "test_store.json")
-        store.add(note)
+        # First add note_2 and then add one second of pause to check if store returns
+        # notes in order of their end datetimes (and thereby also making sure
+        # that not start datetime is used)
         store.add(note_2)
+        time.sleep(1)
+        store.add(note)
 
         loaded_notes = store.load()
         assert isinstance(loaded_notes, list)
@@ -133,11 +152,11 @@ class TestStore:
             isinstance(note[note._end_datetime_key], datetime) for note in loaded_notes
         )
         assert len(loaded_notes) == 2
-        assert loaded_notes[0] == note_2
-        assert loaded_notes[1] == note
+        assert loaded_notes[0] == note
+        assert loaded_notes[1] == note_2
         # Check if same key order is retrieved
-        assert list(loaded_notes[0].keys()) == list(note_2.keys())
-        assert list(loaded_notes[1].keys()) == list(note.keys())
+        assert list(loaded_notes[0].keys()) == list(note.keys())
+        assert list(loaded_notes[1].keys()) == list(note_2.keys())
         assert Note._end_datetime_key in note_2 and Note._end_datetime_key in note
 
     def test_update(self, tmp_path):
@@ -145,12 +164,14 @@ class TestStore:
         original_value = "randomforest"
         note.model = original_value
 
-        time.sleep(1)
         note_2 = Note("note which should be kept as is")
         note_2.model = "fancy_model"
 
         store = Store(tmp_path / "test_store.json")
         store.add(note)
+        # Use one second of pause to check if store returns notes in order of their
+        # end datetimes
+        time.sleep(1)
         store.add(note_2)
 
         loaded_notes = store.load()
@@ -168,7 +189,6 @@ class TestStore:
 
     def test_remove(self, tmp_path):
         note_1 = Note("Note 1")
-        time.sleep(1)
         note_2 = Note("Note 2")
 
         store = Store(tmp_path / "test_store.json")
@@ -185,7 +205,6 @@ class TestStore:
     def test_writing_invalid_note(self, tmp_path):
         invalid_note = Note("Invalid note")
         invalid_note.info["invalid_object"] = InvalidObject()
-        time.sleep(1)
         valid_note = Note("Valid note")
         store = Store(tmp_path / "test_store.json")
 
@@ -197,6 +216,27 @@ class TestStore:
         notes = store.load()
         len(notes) == 1
         notes[0] == valid_note
+
+    def test_deterministic_sorting(self, tmp_path):
+        # Test if sorting is deterministic even if end datetime is the same
+        note = Note()
+        note_2 = Note()
+        note.end()
+        note_2.end()
+        note_2[Note._end_datetime_key] = note[Note._end_datetime_key]
+        store = Store(tmp_path / "test_store.json")
+
+        store.add(note)
+        store.add(note_2)
+        loaded_notes = store.load()
+
+        assert len(loaded_notes) == 2
+        assert note in loaded_notes
+        assert note_2 in loaded_notes
+        assert (
+            sorted(loaded_notes, key=lambda x: x[Note._identifier_key], reverse=True)
+            == loaded_notes
+        )
 
 
 class TestMain:
@@ -216,7 +256,6 @@ class TestMain:
         note_1 = Note("Note 1")
         expected_test_value = "expected_test_value"
         note_1.parameters["find_this_value"] = expected_test_value
-        time.sleep(1)
         note_2 = Note("Note 2")
         store_path = tmp_path / "test_store.json"
         store = Store(store_path)

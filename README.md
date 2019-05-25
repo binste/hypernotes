@@ -36,6 +36,7 @@ Note(content={'text': '',
  'info': {},
  'start_datetime': datetime.datetime(2019, 5, 21, 11, 3, 20),
  'end_datetime': None,
+ 'identifier': '3228fe02-d1c8-4251-8b35-bb8ae3d5f227',
  'python_path': 'C:/example_path/python.exe',
  'git': {'repo_name': 'C:/path_to_your_repo',
          'branch': 'master',
@@ -44,7 +45,7 @@ Note(content={'text': '',
 
 The notes are then saved with a *Store* instance, which uses a json file. Due to this, you should only add [json-serializable objects](https://docs.python.org/3/library/json.html#py-to-json-table) + *datetime.datetime* instances to a *Note*.
 
-A note is uniquely identifiable by its `identifier` attribute, which is the start datetime as a string (e.g. `"2019-05-21T11-03-20"`).
+A note is uniquely identifiable by its `identifier` attribute.
 
 ## Add a note
 ```python
@@ -89,8 +90,6 @@ A Store instance provides the `load` method, which can be used to retrieve the w
 ```python
 notes = store.load()
 most_recent_note = notes[0]
-print(most_recent_note.identifier)
-# E.g. 2019-05-21T11-03-20
 ```
 
 If you have [pandas](https://github.com/pandas-dev/pandas) installed, you can use the `return_dataframe` argument to return a pandas dataframe.
@@ -122,6 +121,7 @@ Example of a returned pandas dataframe:
       <th>git.branch</th>
       <th>git.commit</th>
       <th>git.repo_name</th>
+      <th>identifier</th>
       <th>info.important_stuff</th>
       <th>python_path</th>
     </tr>
@@ -148,6 +148,7 @@ Example of a returned pandas dataframe:
       <td>master</td>
       <td>5e098ab</td>
       <td>C:/path_to_your_repo</td>
+      <td>0f84217d-e01b-466d-9a73-001827c60584</td>
       <td>something noteworthy</td>
       <td>C:/example_path/python.exe</td>
     </tr>
@@ -172,6 +173,7 @@ Example of a returned pandas dataframe:
       <td>master</td>
       <td>5e098ab</td>
       <td>C:/path_to_your_repo</td>
+      <td>dd8bbc32-ff8f-433d-9eec-a24a7859622f</td>
       <td>something noteworthy</td>
       <td>C:/example_path/python.exe</td>
     </tr>

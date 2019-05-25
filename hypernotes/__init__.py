@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 import sys
+import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
 from json import JSONEncoder
@@ -28,6 +29,7 @@ class Note(dict):
     _start_datetime_key = "start_datetime"
     _end_datetime_key = "end_datetime"
 
+    _identifier_key = "identifier"
     _git_key = "git"
     _python_path_key = "python_path"
 
@@ -50,7 +52,9 @@ class Note(dict):
         content : Optional[Dict[str, dict]], optional (default=None)
             Mainly for internal use to create Note instances out of loaded
             dictionaries from a Store. If content is passed, no additional information
-            is added on instantiation of the class (e.g. no start datetime).
+            is added on instantiation of the class (e.g. no start datetime,
+            identifier, ...), meaning that these attributes already need to be
+            present in the apssed in dictionary.
         """
         if content is not None:
             super().__init__(content)
@@ -61,6 +65,9 @@ class Note(dict):
             self._set_up_initial_structure()
             self._start()
 
+    def _set_identifier(self) -> None:
+        self[self._identifier_key] = str(uuid.uuid4())
+
     def _set_up_initial_structure(self) -> None:
         self[self._model_key] = None
         self[self._parameters_key] = {}
@@ -70,6 +77,7 @@ class Note(dict):
         self[self._info_key] = {}
         self[self._start_datetime_key] = None
         self[self._end_datetime_key] = None
+        self._set_identifier()
         self[self._python_path_key] = self._python_executable_path()
 
     def _initial_features_structure(self) -> dict:
@@ -132,7 +140,7 @@ class Note(dict):
 
     @property
     def identifier(self) -> str:
-        return _format_datetime(self[self._start_datetime_key])
+        return self[self._identifier_key]
 
     @property
     def text(self) -> str:
@@ -304,6 +312,7 @@ def _key_order(
     else:
         for k in additional_keys_subset:
             key_order += _filter_sequence_if_startswith(keys, startswith=k)
+    key_order.append(Note._identifier_key)
     return key_order
 
 
@@ -502,8 +511,16 @@ class Store(BaseStore):
         self._json_dump(raw_dicts, self.path)
 
     def _sort_notes(self, notes: List[Note]) -> List[Note]:
-        """Sorted by start datetime. Most recent note first"""
-        return list(sorted(notes, key=lambda x: x[x._start_datetime_key], reverse=True))
+        """Sorted by end datetime (descending order, i.e. newest first)
+        and if there is a tie also by the identifier to get a deterministic order.
+        """
+        return list(
+            sorted(
+                notes,
+                key=lambda x: (x[x._end_datetime_key], x[x._identifier_key]),
+                reverse=True,
+            )
+        )
 
     @staticmethod
     def _json_load(path: Path) -> List[dict]:
