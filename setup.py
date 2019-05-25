@@ -39,6 +39,7 @@ setuptools.setup(
     python_requires=">=3.6",
     license="MIT",
     classifiers=(
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
