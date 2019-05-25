@@ -238,6 +238,27 @@ class TestStore:
             == loaded_notes
         )
 
+    def test_from_note(self):
+        original_note = Note("original note")
+        precision_value = 0.5
+        original_note.metrics["precision"] = precision_value
+
+        # Pause to make sure that newly created note gets a different start datetime
+        # than the original one
+        time.sleep(1)
+        new_note = Note.from_note(original_note)
+        new_note.features["numerical"].append("num1")
+
+        assert new_note.text == original_note.text
+        assert new_note.metrics["precision"] == precision_value
+        assert (
+            new_note[new_note._start_datetime_key]
+            > original_note[original_note._start_datetime_key]
+        )
+        assert new_note.identifier != original_note.identifier
+        assert new_note.features["numerical"] == ["num1"]
+        assert len(original_note.features["numerical"]) == 0
+
 
 class TestMain:
     def test_html_format(self):

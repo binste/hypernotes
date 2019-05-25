@@ -138,6 +138,34 @@ class Note(dict):
         else:
             return True
 
+    @classmethod
+    def from_note(cls, note: "Note"):
+        """Creates a new note from an existing one, taking over its content
+        but setting a new start datetime and identifier.
+
+        Can for example be used when evaluating multiple model parameters
+        (e.g. in a gridsearch setup). Simply create a new note from the original one
+        for each parameter set which should be evaluated and add the parameters
+        and metrics to the new note.
+
+        This method creates a deepcopy of the original one, meaning that modifying
+        the new note should not affect the old one.
+
+        Parameters
+        ----------
+        note : Note
+            Existing ntoe from which the content should be taken over
+
+        Returns
+        -------
+        Note
+        """
+        assert isinstance(note, cls)
+        new_note = copy.deepcopy(note)
+        new_note[cls._start_datetime_key] = new_note._current_datetime()
+        new_note._set_identifier()
+        return new_note
+
     @property
     def identifier(self) -> str:
         return self[self._identifier_key]
