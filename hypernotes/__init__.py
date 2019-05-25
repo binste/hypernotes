@@ -61,24 +61,25 @@ class Note(dict):
             self._content_passed = True
         else:
             self._content_passed = False
-            self[self._text_key] = text
+            self.text = text
             self._set_up_initial_structure()
             self._start()
 
     def _set_identifier(self) -> None:
-        self[self._identifier_key] = str(uuid.uuid4())
+        self.identifier = str(uuid.uuid4())
 
     def _set_up_initial_structure(self) -> None:
-        self[self._model_key] = None
-        self[self._parameters_key] = {}
-        self[self._features_key] = self._initial_features_structure()
-        self[self._target_key] = None
-        self[self._metrics_key] = {}
-        self[self._info_key] = {}
-        self[self._start_datetime_key] = None
-        self[self._end_datetime_key] = None
+        self.model = None
+        self.parameters = {}
+        self.features = self._initial_features_structure()
+        self.target = None
+        self.metrics = {}
+        self.info = {}
+        self.start_datetime = None
+        self.end_datetime = None
         self._set_identifier()
-        self[self._python_path_key] = self._python_executable_path()
+        self.python_path = self._python_executable_path()
+        self.git = {}
 
     def _initial_features_structure(self) -> dict:
         """This method can easily be overwritten to return a different
@@ -91,36 +92,33 @@ class Note(dict):
         return sys.executable
 
     def _start(self) -> None:
-        self[self._start_datetime_key] = self._current_datetime()
+        self.start_datetime = self._current_datetime()
         self._add_git_info()
 
     def end(self) -> None:
         """Adds the current datetime as 'end_datetime' to the note"""
-        self[self._end_datetime_key] = self._current_datetime()
+        self.end_datetime = self._current_datetime()
 
     def _current_datetime(self) -> datetime:
         return datetime.now().replace(microsecond=0)
 
     def _add_git_info(self) -> None:
         if self._is_in_git_repo():
-            git_info = {}
-            git_info["repo_name"] = (
+            self.git["repo_name"] = (
                 subprocess.check_output(["git", "rev-parse", "--git-dir"])
                 .strip()
                 .decode("utf-8")
             )
-            git_info["branch"] = (
+            self.git["branch"] = (
                 subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
                 .strip()
                 .decode("utf-8")
             )
-            git_info["commit"] = (
+            self.git["commit"] = (
                 subprocess.check_output(["git", "rev-parse", "--short", "HEAD"])
                 .strip()
                 .decode("utf-8")
             )
-
-            self[self._git_key] = git_info
 
     def _is_in_git_repo(self) -> bool:
         """Function based on following stackoverflow answer by tdelaney:
@@ -162,13 +160,17 @@ class Note(dict):
         """
         assert isinstance(note, cls)
         new_note = copy.deepcopy(note)
-        new_note[cls._start_datetime_key] = new_note._current_datetime()
+        new_note.start_datetime = new_note._current_datetime()
         new_note._set_identifier()
         return new_note
 
     @property
     def identifier(self) -> str:
         return self[self._identifier_key]
+
+    @identifier.setter
+    def identifier(self, value):
+        self[self._identifier_key] = value
 
     @property
     def text(self) -> str:
@@ -226,6 +228,38 @@ class Note(dict):
     def info(self, value):
         self[self._info_key] = value
 
+    @property
+    def start_datetime(self):
+        return self[self._start_datetime_key]
+
+    @start_datetime.setter
+    def start_datetime(self, value):
+        self[self._start_datetime_key] = value
+
+    @property
+    def end_datetime(self):
+        return self[self._end_datetime_key]
+
+    @end_datetime.setter
+    def end_datetime(self, value):
+        self[self._end_datetime_key] = value
+
+    @property
+    def python_path(self):
+        return self[self._python_path_key]
+
+    @python_path.setter
+    def python_path(self, value):
+        self[self._python_path_key] = value
+
+    @property
+    def git(self):
+        return self[self._git_key]
+
+    @git.setter
+    def git(self, value):
+        self[self._git_key] = value
+
     def __repr__(self) -> str:
         # Code and idea for patching sorted to prevent sorting by
         # dictionary keys come from:
@@ -266,7 +300,7 @@ class BaseStore(ABC):
 
 
 def _prepare_note_for_storing(note: Note) -> Note:
-    if note[note._end_datetime_key] is None:
+    if note.end_datetime is None:
         note.end()
     return copy.deepcopy(note)
 
@@ -543,11 +577,7 @@ class Store(BaseStore):
         and if there is a tie also by the identifier to get a deterministic order.
         """
         return list(
-            sorted(
-                notes,
-                key=lambda x: (x[x._end_datetime_key], x[x._identifier_key]),
-                reverse=True,
-            )
+            sorted(notes, key=lambda x: (x.end_datetime, x.identifier), reverse=True)
         )
 
     @staticmethod

@@ -1,6 +1,6 @@
 import multiprocessing as mp
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -27,10 +27,11 @@ class TestNote:
                 note._end_datetime_key,
                 note._python_path_key,
                 note._identifier_key,
+                note._git_key,
             )
         )
-        assert isinstance(note[note._start_datetime_key], datetime)
-        python_path = note[note._python_path_key]
+        assert isinstance(note.start_datetime, datetime)
+        python_path = note.python_path
         assert isinstance(python_path, str)
         assert python_path.endswith("python")
         assert Path(python_path).exists()
@@ -38,10 +39,10 @@ class TestNote:
     def test_end(self):
         note = Note()
         note.end()
-        assert isinstance(note[note._end_datetime_key], datetime)
+        assert isinstance(note.end_datetime, datetime)
         assert note._git_key in note
         for git_info_key in ("repo_name", "branch", "commit"):
-            git_value = note[note._git_key][git_info_key]
+            git_value = note.git[git_info_key]
             assert isinstance(git_value, str)
             assert len(git_value) > 1
 
@@ -74,6 +75,7 @@ class TestNote:
 
     def test_properties_and_setters(self):
         note = Note()
+        note.end()
         assert isinstance(note.identifier, str)
         text_value = "test"
         model_value = "model"
@@ -82,6 +84,10 @@ class TestNote:
         features_value = "features"
         target_value = "target"
         info_value = "info"
+        start_datetime = datetime.now()
+        end_datetime = datetime.now() + timedelta(seconds=1)
+        python_path = "test_path"
+        git = {"branch": "master", "commit": "1234"}
 
         note.text = text_value
         note.model = model_value
@@ -90,7 +96,13 @@ class TestNote:
         note.features = features_value
         note.target = target_value
         note.info = info_value
+        note.start_datetime = start_datetime
+        note.end_datetime = end_datetime
+        note.python_path = python_path
+        note.git = git
 
+        assert isinstance(note.identifier, str)
+        assert len(note.identifier) == 36
         assert note.text == text_value
         assert note.model == model_value
         assert note.metrics == metrics_value
@@ -98,6 +110,10 @@ class TestNote:
         assert note.features == features_value
         assert note.target == target_value
         assert note.info == info_value
+        assert note.start_datetime == start_datetime
+        assert note.end_datetime == end_datetime
+        assert note.python_path == python_path
+        assert note.git == git
 
     def test_set_identifier(self):
         note = Note()
@@ -144,13 +160,8 @@ class TestStore:
         loaded_notes = store.load()
         assert isinstance(loaded_notes, list)
         assert all(isinstance(note, Note) for note in loaded_notes)
-        assert all(
-            isinstance(note[note._start_datetime_key], datetime)
-            for note in loaded_notes
-        )
-        assert all(
-            isinstance(note[note._end_datetime_key], datetime) for note in loaded_notes
-        )
+        assert all(isinstance(note.start_datetime, datetime) for note in loaded_notes)
+        assert all(isinstance(note.end_datetime, datetime) for note in loaded_notes)
         assert len(loaded_notes) == 2
         assert loaded_notes[0] == note
         assert loaded_notes[1] == note_2
@@ -223,7 +234,7 @@ class TestStore:
         note_2 = Note()
         note.end()
         note_2.end()
-        note_2[Note._end_datetime_key] = note[Note._end_datetime_key]
+        note_2.end_datetime = note.end_datetime
         store = Store(tmp_path / "test_store.json")
 
         store.add(note)
@@ -234,7 +245,7 @@ class TestStore:
         assert note in loaded_notes
         assert note_2 in loaded_notes
         assert (
-            sorted(loaded_notes, key=lambda x: x[Note._identifier_key], reverse=True)
+            sorted(loaded_notes, key=lambda x: x.identifier, reverse=True)
             == loaded_notes
         )
 
@@ -251,10 +262,7 @@ class TestStore:
 
         assert new_note.text == original_note.text
         assert new_note.metrics["precision"] == precision_value
-        assert (
-            new_note[new_note._start_datetime_key]
-            > original_note[original_note._start_datetime_key]
-        )
+        assert new_note.start_datetime > original_note.start_datetime
         assert new_note.identifier != original_note.identifier
         assert new_note.features["numerical"] == ["num1"]
         assert len(original_note.features["numerical"]) == 0
