@@ -200,6 +200,14 @@ notes_to_remove = notes[:2]
 store.remove(notes_to_remove)
 ```
 
+## Create note from another one
+When evaluating multiple model parameters (e.g. in a grid search setup), you might find it useful to create a new note for each parameter set. To do this, you can use the `from_note` method to create a new note from an existing one. This takes over all existing content, but also sets a new start datetime and identifier. After creation, the notes are independent, i.e. modifying one will not affect the other.
+
+```python
+original_note = Note("Original")
+new_note = Note.from_note(original_note)
+```
+
 ## View content of a store
 ### Directly in your browser (no additional dependencies)
 To get a quick glance into a store, you can use the package from the command line. It will start an http server and automatically open the relevant page in your web browser. The page contains an interactive table which shows the most relevant information of all notes in the store such as metrics and parameters. The table is similar in style to the one shown in the [Load notes](#load-notes) section.
