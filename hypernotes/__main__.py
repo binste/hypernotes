@@ -1,21 +1,19 @@
 import argparse
-import copy
 import json
+import sys
 import textwrap
 import webbrowser
-import sys
 from datetime import datetime
-from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import Dict, List, Set, Union, Any
+from typing import List
 
 from hypernotes import (
-    Store,
     Note,
-    _flatten_notes,
+    Store,
     _all_keys_from_dicts,
-    _key_order,
+    _flatten_notes,
     _format_datetime,
+    _key_order,
 )
 
 
