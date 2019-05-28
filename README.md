@@ -17,12 +17,14 @@ hypernotes is a lightweight Python package for taking notes on your machine lear
 - [Alternatives](#alternatives)
 - [Development](#development)
 
+[Changelog for this package](CHANGELOG.md)
+
 # Installation
 ```bash
 pip install hypernotes
 ```
 
-Only Python 3.6+ is supported
+Python 3.6+ is required
 
 # Basic Usage
 hypernotes implements a *Note* and a *Store* class. A *Note* is a small wrapper around Python dictionaries. This means that you can do everything with it, that you could do with a normal dictionary, but in addition, it stores:
