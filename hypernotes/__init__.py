@@ -41,8 +41,8 @@ class Note(dict):
         such as time and date, last commit and current branch of git repository,
         path to Python executable, etc.
 
-        The most commonly used dictionary keys can be accessed as attributes
-        for better auto-completion support and readability.
+        All initial dictionary keys can be accessed as attributes
+        for better auto-completion support and code readability.
 
 
         Parameters
