@@ -253,4 +253,4 @@ Any requirements for developing the package can be installed with
 pip install -r requirements_dev.txt
 ```
 
-Code is required to be formatted with [Black](https://github.com/python/black).
+Make sure that all tests run by tox pass.

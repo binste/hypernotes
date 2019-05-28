@@ -1,3 +1,6 @@
 pytest
 requests
+black
+mypy
+flake8
 tox
