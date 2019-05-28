@@ -2,6 +2,7 @@
 Publish a new version:
 - Change version number in hypernotes/__init__.py
 - Add entry to CHANGELOG.md
+$ tox
 $ git tag vX.Y.Z -m "Release X.Y.Z"
 $ git push --tags
 Use either pip or conda to upgrade twine and wheel
