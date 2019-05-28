@@ -1,7 +1,21 @@
-# hypernotes
+# hypernotes <!-- omit in toc -->
 [![PyPI version](http://img.shields.io/pypi/v/hypernotes.svg?style=flat-square&color=blue)](https://pypi.python.org/pypi/hypernotes/) [![Python versions](https://img.shields.io/pypi/pyversions/hypernotes.svg?style=flat-square&color=blue)]()
 
 hypernotes is a lightweight Python package for taking notes on your machine learning experiments. It provides a simple way to store hyperparameters, their corresponding evaluation metrics, as well as additional information and retrieve them again later for analyzing. It is written in pure Python and requires no additional dependencies.
+
+# Table of contents <!-- omit in toc -->
+- [Installation](#installation)
+- [Basic Usage](#basic-usage)
+  - [Create note and add to store](#create-note-and-add-to-store)
+  - [Load notes](#load-notes)
+  - [Update notes](#update-notes)
+  - [Remove notes](#remove-notes)
+  - [Create note from another one](#create-note-from-another-one)
+- [Bonus](#bonus)
+  - [View content of a store in your browser](#view-content-of-a-store-in-your-browser)
+  - [Store additional objects](#store-additional-objects)
+- [Alternatives](#alternatives)
+- [Development](#development)
 
 # Installation
 ```bash
@@ -47,7 +61,7 @@ The notes are then saved with a *Store* instance, which uses a json file. Due to
 
 A note is uniquely identifiable by its `identifier` attribute.
 
-## Create a note and add to a store
+## Create note and add to store
 ```python
 from hypernotes import Note, Store
 
@@ -208,20 +222,17 @@ original_note = Note("Original")
 new_note = Note.from_note(original_note)
 ```
 
-## View content of a store
-### Directly in your browser (no additional dependencies)
+# Bonus
+## View content of a store in your browser
 To get a quick glance into a store, you can use the package from the command line. It will start an http server and automatically open the relevant page in your web browser. The page contains an interactive table which shows the most relevant information of all notes in the store such as metrics and parameters. The table is similar in style to the one shown in the [Load notes](#load-notes) section.
 ```
 $ python -m hypernotes hyperstore.json
 ```
-This only requires a modern web browser as well as an internet connection to load a view javascript libraries and css files.
+This only requires a modern web browser as well as an internet connection to load some javascript libraries and css files.
 
 To see all available options pass the `--help` argument.
 
-### pandas and QGrid
-Another useful option might be to load the store as a pandas dataframe (see [Load notes](#load-notes)) and then use [Qgrid](https://github.com/quantopian/qgrid) in a Jupyter notebook.
-
-## Bonus: Store additional objects in separate experiment folders
+## Store additional objects
 If you want to store larger artifacts of your experiment, such as a trained model, you could create a separate folder and use the identifier of a note as part of the name.
 
 ```python
@@ -229,7 +240,7 @@ experiment_folder = f"experiment_{note.identifier}"
 ```
 You can then store any additional objects into this folder and it will be very easy to lather on link them again to the hyperparameters and metrics stored using hypernotes.
 
-# Other tools
+# Alternatives
 Check out tools such as [MLflow](https://mlflow.org/), [Sacred](https://sacred.readthedocs.io/en/latest/index.html), or [DVC](https://dvc.org/) if you need better multi-user capabilities, more advanced reproducibility features, dataset versioning, ...
 
 # Development
