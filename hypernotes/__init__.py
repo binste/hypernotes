@@ -9,7 +9,7 @@ from datetime import datetime
 from json import JSONEncoder
 from pathlib import Path
 from pprint import pformat
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 from unittest.mock import patch
 
 __version__ = "2.0.0"
@@ -386,7 +386,7 @@ def _flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
 
     Taken from https://stackoverflow.com/a/6027615
     """
-    items = []  # type: List[tuple]
+    items = []  # type: List[Tuple[Any, Any]]
     for k, v in d.items():
         new_key = parent_key + sep + k if parent_key else k
         if isinstance(v, dict):
@@ -469,7 +469,8 @@ class Store(BaseStore):
         all_notes = self.load()
         if self._notes_are_subset(notes_subset=[note], all_notes=all_notes):
             raise Exception(
-                f"The identifier for the note '{note.identifier}' already exists in the store."
+                f"The identifier for the note '{note.identifier}' "
+                + "already exists in the store."
                 + " The note was not added."
             )
         note = _prepare_note_for_storing(note)

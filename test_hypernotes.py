@@ -7,7 +7,7 @@ import pytest
 import requests
 
 from hypernotes import Note, Store, _pandas_dict
-from hypernotes.__main__ import _format_notes_as_html, main, _parse_args
+from hypernotes.__main__ import _format_notes_as_html, main
 
 
 class TestNote:
