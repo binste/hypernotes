@@ -350,7 +350,7 @@ def _all_keys_from_dicts(ds: Sequence[Dict[str, Any]]) -> List[str]:
 def _key_order(
     keys: Sequence[str], additional_keys_subset: Optional[Sequence[str]] = None
 ) -> List[str]:
-    """start_datetime, end_datetime, text, and model are always first.
+    """start_datetime, end_datetime, text, model, and identifier are always first.
     Afterwards, either all keys are added in order of metrics, parameters,
     features, git, and others, or only the passed in categories
     from additional_keys_subset. additional_keys_subset can hereby just be
@@ -361,6 +361,7 @@ def _key_order(
         Note._end_datetime_key,
         Note._text_key,
         Note._model_key,
+        Note._identifier_key,
     ]
     if additional_keys_subset is None:
         key_order += (
@@ -371,13 +372,11 @@ def _key_order(
             + _filter_sequence_if_startswith(keys, startswith=Note._info_key)
             + _filter_sequence_if_startswith(keys, startswith=Note._git_key)
             + [Note._python_path_key]
-            + [Note._identifier_key]
         )
         key_order.extend(sorted([k for k in keys if k not in key_order]))
     else:
         for k in additional_keys_subset:
             key_order += _filter_sequence_if_startswith(keys, startswith=k)
-    key_order.append(Note._identifier_key)
     return key_order
 
 
