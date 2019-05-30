@@ -1,4 +1,12 @@
 # Changelog
+## 2.0.1 (2019-05-30)
+* Make datatable properly scale up in width with bigger screens
+* Show whole content of store in datatable view (previous behaviour was to show only a subset of columns)
+* Show identifier column in table representation (i.e. pandas dataframe or data table view from cli) before metrics, parameters, etc.
+* Fix bug where identifier column was shown twice in table representation
+* Add black, mypy, and flake8 checks to tox
+* Additional documentation improvements and internal changes
+
 ## 2.0.0 (2019-05-25)
 * **Major**: Change identifier to unique id provided by the uuid module. This breaks compatibility with existing stores. Has the advantage that notes can now have the same start datetime.
 * Add attributes for all initial keys in Note instance. Previously it was only for a few

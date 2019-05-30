@@ -12,7 +12,7 @@ from pprint import pformat
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 from unittest.mock import patch
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 DATETIME_STRING_FORMAT = "%Y-%m-%dT%H-%M-%S"
 
 
