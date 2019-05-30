@@ -20,7 +20,7 @@ from hypernotes import (
 def _format_notes_as_html(notes: List[Note]):
     flat_dicts = _flatten_notes(notes)
     all_keys = _all_keys_from_dicts(flat_dicts)
-    key_order = _key_order(all_keys, additional_keys_subset=["metrics", "parameters"])
+    key_order = _key_order(all_keys)
 
     data = []  # type: List[dict]
     for d in flat_dicts:
