@@ -106,8 +106,8 @@ def _html_body(js_table_tr: str) -> str:
                 <h1>Store Content</h1>
             </div>
             <hr>
-            <div class="container">
-                <div class="row">
+            <div class="container-fluid">
+                <div class="row mx-5">
                     <table id="store_table" class="table table-striped table-bordered" style="width:100%">
                         <thead>
                             {js_table_tr}
