@@ -122,6 +122,7 @@ Example of a returned pandas dataframe:
       <th>end_datetime</th>
       <th>text</th>
       <th>model</th>
+      <th>identifier</th>
       <th>metrics.test.precision</th>
       <th>metrics.test.recall</th>
       <th>metrics.train.precision</th>
@@ -137,7 +138,6 @@ Example of a returned pandas dataframe:
       <th>git.branch</th>
       <th>git.commit</th>
       <th>git.repo_name</th>
-      <th>identifier</th>
       <th>info.important_stuff</th>
       <th>python_path</th>
     </tr>
@@ -149,6 +149,7 @@ Example of a returned pandas dataframe:
       <td>2019-05-21 17:05:21</td>
       <td>Another useful description</td>
       <td>randomforest</td>
+      <td>0f84217d-e01b-466d-9a73-001827c60584</td>
       <td>0.29</td>
       <td>0.29</td>
       <td>0.40</td>
@@ -164,7 +165,6 @@ Example of a returned pandas dataframe:
       <td>master</td>
       <td>5e098ab</td>
       <td>C:/path_to_your_repo</td>
-      <td>0f84217d-e01b-466d-9a73-001827c60584</td>
       <td>something noteworthy</td>
       <td>C:/example_path/python.exe</td>
     </tr>
@@ -174,6 +174,7 @@ Example of a returned pandas dataframe:
       <td>2019-05-21 16:30:16</td>
       <td>Useful description</td>
       <td>randomforest</td>
+      <td>dd8bbc32-ff8f-433d-9eec-a24a7859622f</td>
       <td>0.82</td>
       <td>0.29</td>
       <td>0.91</td>
@@ -189,7 +190,6 @@ Example of a returned pandas dataframe:
       <td>master</td>
       <td>5e098ab</td>
       <td>C:/path_to_your_repo</td>
-      <td>dd8bbc32-ff8f-433d-9eec-a24a7859622f</td>
       <td>something noteworthy</td>
       <td>C:/example_path/python.exe</td>
     </tr>
