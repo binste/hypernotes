@@ -351,7 +351,7 @@ def _key_order(
     keys: Sequence[str], additional_keys_subset: Optional[Sequence[str]] = None
 ) -> List[str]:
     """start_datetime, end_datetime, text, and model are always first.
-    Afterwards, either all keys are added in orther metrics, parameters,
+    Afterwards, either all keys are added in order of metrics, parameters,
     features, git, and others, or only the passed in categories
     from additional_keys_subset. additional_keys_subset can hereby just be
     the start of the strings, e.g. ["metrics", "parameters]"
