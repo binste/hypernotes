@@ -307,7 +307,7 @@ def _prepare_note_for_storing(note: Note) -> Note:
 
 def _to_pandas(notes: List[Note]):
     try:
-        import pandas as pd
+        import pandas as pd  # type: ignore
     except ImportError:
         raise ImportError(
             "Pandas is not installed. You can install it via:\n"

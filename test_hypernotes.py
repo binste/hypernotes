@@ -3,7 +3,7 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-import pytest
+import pytest  # type: ignore
 import requests
 
 from hypernotes import Note, Store, _pandas_dict
