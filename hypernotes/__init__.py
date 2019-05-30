@@ -401,9 +401,12 @@ def _filter_sequence_if_startswith(seq: Sequence[str], startswith: str) -> List[
 
 
 class Store(BaseStore):
-    def __init__(self, path: Union[str, Path]) -> None:
-        """Stores and loads Note instances in and from a json file
+    """Main purpose is to store Note instances in a json file. Additional methods are
+    provided to load all notes, as well as update or remove specified notes.
+    """
 
+    def __init__(self, path: Union[str, Path]) -> None:
+        """
         Parameters
         ----------
         path : Union[str, Path]
