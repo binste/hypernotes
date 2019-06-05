@@ -33,7 +33,7 @@ class TestNote:
         assert isinstance(note.start_datetime, datetime)
         python_path = note.python_path
         assert isinstance(python_path, str)
-        assert python_path.endswith("python")
+        assert "python" in python_path
         assert Path(python_path).exists()
 
     def test_end(self):
