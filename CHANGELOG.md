@@ -1,4 +1,8 @@
 # Changelog
+## 2.0.2 (2019-06-12)
+* Fix issue where stores which contained datetimes in arrays (such as lists) could not be viewed using the command-line interface
+* Fix windows compatibility issue of tests
+
 ## 2.0.1 (2019-05-30)
 * Make datatable properly scale up in width with bigger screens
 * Show whole content of store in datatable view (previous behaviour was to show only a subset of columns)
