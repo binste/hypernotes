@@ -2,11 +2,12 @@ import multiprocessing as mp
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Sequence
 
 import pytest  # type: ignore
 import requests
 
-from hypernotes import Note, Store, _pandas_dict
+from hypernotes import Note, Store, _pandas_dict, _format_datetime
 from hypernotes.__main__ import _format_notes_as_html, main
 
 
@@ -276,16 +277,24 @@ class TestMain:
         note.metrics["accuracy"] = 0.2
         note.parameters["impute_values"] = True
         note.parameters["find_this_value"] = expected_test_value
+        dt_1 = datetime(2019, 1, 3, 10, 0, 1)
+        dt_2 = datetime(2019, 2, 25, 12, 10, 0)
+        note.info["some_dates"] = [dt_1, dt_2]
         note.end()
 
         html = _format_notes_as_html([note])
-        self.validate_html(html, expected_test_value)
+        self.validate_html(
+            html, [expected_test_value, _format_datetime(dt_1), _format_datetime(dt_2)]
+        )
 
     def test_command_line_interface(self, tmp_path):
         note_1 = Note("Note 1")
         expected_test_value = "expected_test_value"
         note_1.parameters["find_this_value"] = expected_test_value
         note_2 = Note("Note 2")
+        dt_1 = datetime(2019, 1, 3, 10, 0, 1)
+        dt_2 = datetime(2019, 2, 25, 12, 10, 0)
+        note_2.info["some_dates"] = [dt_1, dt_2]
         store_path = tmp_path / "test_store.json"
         store = Store(store_path)
         store.add(note_1)
@@ -299,12 +308,16 @@ class TestMain:
             p.start()
             time.sleep(1)
             html = requests.get(f"http://localhost:{port}").text
-            self.validate_html(html, expected_test_value)
+            self.validate_html(
+                html,
+                [expected_test_value, _format_datetime(dt_1), _format_datetime(dt_2)],
+            )
         finally:
             p.terminate()
 
-    def validate_html(self, html: str, expected_test_value: str) -> None:
-        assert expected_test_value in html
+    def validate_html(self, html: str, expected_test_values: Sequence[str]) -> None:
+        for value in expected_test_values:
+            assert value in html
         assert "<!DOCTYPE html>" in html
         assert "datatables" in html.lower()
 

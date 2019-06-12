@@ -5,6 +5,7 @@ import textwrap
 import webbrowser
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from json import JSONEncoder
 from typing import List
 
 from hypernotes import (
@@ -17,6 +18,15 @@ from hypernotes import (
 )
 
 
+class DatetimeNonReversibleJSONEncoder(JSONEncoder):
+    """Encodes datetime objects as a string representation"""
+
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return _format_datetime(obj)
+        return super().default(obj)
+
+
 def _format_notes_as_html(notes: List[Note]):
     flat_dicts = _flatten_notes(notes)
     all_keys = _all_keys_from_dicts(flat_dicts)
@@ -26,13 +36,10 @@ def _format_notes_as_html(notes: List[Note]):
     for d in flat_dicts:
         row = {}  # type: dict
         for col in key_order:
-            value = d.get(col, "")
-            if isinstance(value, datetime):
-                value = _format_datetime(value)
-            row[col] = value
+            row[col] = d.get(col, "")
         data.append(row)
 
-    js_var_data = json.dumps(data)
+    js_var_data = json.dumps(data, cls=DatetimeNonReversibleJSONEncoder)
     # Points in column names need to be escaped for the 'data' attribute in datatables
     escaped_columns = [col.replace(".", "\\\\.") for col in key_order]
     js_columns = "[" + ", ".join(f'{{data: "{col}"}}' for col in escaped_columns) + "]"
